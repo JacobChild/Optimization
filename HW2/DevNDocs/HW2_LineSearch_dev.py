@@ -33,7 +33,22 @@ def directional_deriv(ptf, pf, funcf=sphere_func_grad):
 def stepper(pt0f, stepf, pf): #initial point, stepsize, direction 
     return pt0f + np.dot(stepf,pf)
 
-p = np.array([1.,0.]).T 
+def alphafunc(x1f,x0f,pf):
+    with np.errstate(divide='ignore', invalid='ignore'):
+        af = np.divide((x1f - x0f), pf, out=np.full_like(x0f, np.nan), where=pf!=0)
+    # Find the first non-NaN value
+    non_nan_values = af[~np.isnan(af)]
+    if len(non_nan_values) == 0:
+        raise ValueError("All elements in af are NaN")
+    
+    first_non_nan = non_nan_values[0]
+    
+    # Ensure all elements are the same
+    if not np.allclose(non_nan_values, first_non_nan, equal_nan=True):
+        raise ValueError("Not all elements in af are the same")
+    
+    return first_non_nan
+    
 
 # %% Bracketing Function begin
 # Goals/conditions at which the bracket function stops
@@ -68,8 +83,8 @@ def bracket_func(pt0f, a_init_f, phif_0, phiprimef_0, muf_1, muf_2, sigmaf, pf, 
             astar, pt_tracker = pinpoint(pt_tracker, phi_tracker, phiprime_tracker, 'quad', muf_1, muf_2, pf)
             plotter(pt_tracker)
             return astar
-        
-        phiprime_tracker = np.vstack([phiprime_tracker, directional_deriv(pt_tracker[-1],pf)])
+        if True:#i > 0: #? why not i>0?
+            phiprime_tracker = np.vstack([phiprime_tracker, directional_deriv(pt_tracker[-1],pf)])
         
         #? why is check3 true?
         print("phiprime2: ", phiprime_tracker[-1])
@@ -81,7 +96,7 @@ def bracket_func(pt0f, a_init_f, phif_0, phiprimef_0, muf_1, muf_2, sigmaf, pf, 
             astar = pt_tracker[-1]
             return astar
         
-        check4 = phiprime_tracker[-1] >= 0 
+        check4 = phiprime_tracker[-1] >= 0 and i > 0 #this might force it to take a bad step
         if check4: 
             print("call pinpoint @ check4")
             plotter(pt_tracker)
@@ -98,54 +113,53 @@ def bracket_func(pt0f, a_init_f, phif_0, phiprimef_0, muf_1, muf_2, sigmaf, pf, 
 # %% pinpoint function
 def pinpoint(pttf, phitf, phiptf, methodf, mu1f, mu2f, pf,  solve_func = sphere_func, maxiter = 100): #pt_tracker, phi_tracker, phiprime_tracker
     k = 0 
+    #find a_low and a_high 
+    if phitf[-1,0] < phitf[-2,0]:
+        phi_low = phitf[-1, 0]
+        a_low = alphafunc(pttf[-1], pttf[0], pf)
+        phi_high = phitf[-2, 0]
+        a_high = alphafunc(pttf[-2], pttf[0], pf)
+        
+    else:
+        phi_low = phitf[-2, 0]
+        a_low = alphafunc(pttf[-2], pttf[0], pf)
+        phi_high = phitf[-1, 0]
+        a_high = alphafunc(pttf[-1], pttf[0], pf)
     
     while k <= maxiter:
-        a1f = pttf[-2] 
-        a2f = pttf[-1]
         
-        if methodf == 'quad': # for quad I don't yet know phiprime2 and phi(pt2) > phi(pt1) 
-            a_low = pttf[-2]
-            phi_low = phitf[-2]
-            a_high = pttf[-1]
-            phi_high = pttf[-1]
-            ap = (2*a1f * np.abs(phitf[-1] - phitf[-2]) + phiptf[-1]*(a1f**2 - a2f**2)) / (2 * np.abs(phitf[-1] - phitf[-2] + phiptf[-1]*(a1f-a2f)))
+        #simple bisection method
+        ap = (a_high + a_low) / 2.
             
-        if methodf == 'cubic': # I should know phiprime2, and phi(pt2) < phi(pt1) 
-            phi_low = phitf[-1]
-            a_low = pttf[-1]
-            phi_high = phitf[-2]
-            a_high = pttf[-2]
-            
-            beta1 =  phiptf[-2] + phiptf[-1] - 3* (phitf[-2] - phitf[-1]) / distance(a2f,a1f) #(a1f - a2f)
-            beta2 = np.sign(a2f - a1f) * np.sqrt(beta1**2 - phiptf[-2]*phiptf[-1])
-            ap = a2f - (a2f - a1f) * (phiptf[-1] + beta2 -beta1) / (phiptf[-1] - phiptf[-2] + 2* beta2)
-            
-        phip = solve_func(stepper(pttf[-2],ap, pf))
+        phip = solve_func(stepper(pttf[0],ap, pf))
         
-        cond1 = phip > phitf[0] + mu1f * ap * phiptf[0]
-        cond2 = phip > phi_low
+        cond1 = phip > phitf[0,0] + mu1f * ap * phiptf[0,0]
+        cond2 = phip > solve_func(stepper(pttf[0],a_low,pf))
         if cond1 or cond2: 
             a_high = ap 
             
         else:
-            phiprimep = directional_deriv(stepper(pttf[-2],ap,pf), pf)
+            phiprimep = directional_deriv(stepper(pttf[0],ap,pf), pf)
             
             cond3 = np.abs(phiprimep) <= -mu2f*phiptf[0]
-            cond4 = phiprimep * distance(a_low, a_high) >= 0
+            cond4 = phiprimep * (a_high - a_low) >= 0
             
             if cond3: 
                 astar = ap 
-                return ap #return ap
+                newpoint = stepper(pttf[0],astar,pf)
+                pttf = np.vstack([pttf,newpoint])
+                return newpoint, pttf #return ap
             
             elif cond4:
                 a_high = a_low
                 
             a_low = ap 
 
-        pttf = np.vstack(pttf, ap)
+        pttf = np.vstack([pttf, stepper(pttf[0],ap,pf)])
         
         k += 1
     print("uh oh, maxiter reached, returning current ap, pttf")
+    plotter(pttf)
     return ap, pttf
     
             
@@ -193,12 +207,10 @@ def plotter(ptsf):
 
 
 # %% Before actually doing a bracket function, I am going to just run through myself 
-p = np.array([1.,0.]).T #direction to search ie along the x axis, so y = y we hold y constant 
-pt0 = np.array([-4.,3.]) #initial point
+p = np.array([-2.,4.]).T #direction to search ie along the x axis, so y = y we hold y constant 
+pt0 = np.array([9.,9.]) #initial point [-4.,10.] is a trouble point, errors at [9,-9] and p = -2,4
 phi0 = sphere_func(pt0) #intial output
 ainit = 2. #initial step size
-# I want to end up pt1 = [1,2]
-pt1 = stepper(pt0, ainit, p)
 phiprime0 = directional_deriv(pt0,p) #I expect this to be -14
 
 # that is kind of all of the initial things out of the way, now set some conditions
@@ -216,4 +228,4 @@ phiprime_1 = phiprime0
 first = True 
 i = 1
 # %%
-amin = bracket_func(np.array([8.,9.]), ainit, phi0, phiprime0, mu1, mu2, sigma,np.array([0.,-1.]))
+amin = bracket_func(pt0, ainit, phi0, phiprime0, mu1, mu2, sigma,p)
