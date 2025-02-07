@@ -36,13 +36,13 @@ mu2 = 1e-3
 sigma = 2.
 tau = 1e-4 #! is this a good value? I don't know where to start
 
-xstar, f_xstar, gradmag = linesearch('scipy', x0, ainit, mu1, mu2, sigma, tau, slanted_quad, False)
+xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, slanted_quad, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 plt.semilogy(gradmag)
-plt.xlabel('scipy Loop Calls')
+plt.xlabel('quasi-newton Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Slanted Quad scipy Convergence, Func Calls = {func_calls}')
+plt.title(f'Slanted Quad quasi-newton Convergence, Func Calls = {func_calls}')
 
 # %%
 func_calls = 0
@@ -61,15 +61,15 @@ mu2 = 1e-3
 sigma = 2.
 tau = 1e-4 #! is this a good value? I don't know where to start
 
-xstar, f_xstar, gradmag = linesearch('scipy', x0, ainit, mu1, mu2, sigma, tau, rosenbrock, False)
+xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, rosenbrock, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 #Convergence plot
 # zpts = [rosenbrock(xy) for xy in xpts]
 plt.semilogy(gradmag)
-plt.xlabel('scipy Loop Calls')
+plt.xlabel('quasi-newton Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Rosenbrock scipy Convergence, Func Calls = {func_calls}')
+plt.title(f'Rosenbrock quasi-newton Convergence, Func Calls = {func_calls}')
 
 
 # %% 1.4c Jones Function
@@ -90,13 +90,13 @@ mu2 = 1e-3
 sigma = 2.
 tau = 1e-4 #! is this a good value? I don't know where to start
 
-xstar, f_xstar, gradmag = linesearch('scipy', x0, ainit, mu1, mu2, sigma, tau, jones, False)
+xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, jones, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 # Convergence Plot 
 plt.semilogy(gradmag)
-plt.xlabel('scipy Loop Calls')
+plt.xlabel('quasi-newton Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Jones scipy Convergence, Func Calls = {func_calls}')
+plt.title(f'Jones quasi-newton Convergence, Func Calls = {func_calls}')
 
 # %%
