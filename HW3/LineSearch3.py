@@ -6,6 +6,7 @@
 import numpy as np #it looks like I could do import jax.numpy as jnp and that might be faster than numpy even
 import matplotlib.pyplot as plt
 from jax import grad
+from scipy.optimize import minimize
 
 #Functions 
 def sphere_func(vf):
@@ -134,7 +135,7 @@ def bracket_func(pt0f, a_init_f, phif_0, phiprimef_0, muf_1, muf_2, sigmaf, pf, 
         i += 1
         
 # pinpoint function
-def pinpoint(pttf, phitf, phiptf, methodf, mu1f, mu2f, pf,  solve_func, maxiter = 100): #pt_tracker, phi_tracker, phiprime_tracker
+def pinpoint(pttf, phitf, phiptf, methodf, mu1f, mu2f, pf,  solve_func, maxiter = 1000): #pt_tracker, phi_tracker, phiprime_tracker
     k = 0 
     #find a_low and a_high 
     if phitf[-1,0] < phitf[-2,0]:
@@ -179,13 +180,15 @@ def pinpoint(pttf, phitf, phiptf, methodf, mu1f, mu2f, pf,  solve_func, maxiter 
             a_low = ap 
 
         pttf = np.vstack([pttf, stepper(pttf[0],ap,pf)])
-        
+        # if directional_deriv(pttf[-1],pf) > 0 and directional_deriv(pttf[-2],pf) > 0:
+        #     print("somehow positive grads, returning current ap")
+        #     return ap
         k += 1
-    print("uh oh, maxiter reached, returning current ap, pttf")
+    print("uh oh, maxiter reached, returning current ap = -.1, pttf to reset")
     newpoint = stepper(pttf[0],ap,pf)
     pttf = np.vstack([pttf,newpoint])
     # plotter(pttf, solve_func)
-    return ap, pttf
+    return -.1, pttf
 
 def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solve_funcf, debugf = False):
     # provide different options for the linesearch
@@ -289,9 +292,64 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
                 plotter(np.vstack([act_pt_tracker,new_point]), solve_funcf, (-2.1,2.1))
                 
         return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1])
+    
+    elif directionmethod == "quasi-newton": 
+        k = 0
+        mems = 0
+        a_init_f = 1.
+        reset = False
+        I = np.eye(grad_tracker[-1].shape[0])
+        Vk_tracker = []
+        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf) and (k < 1000):
+            if k == 0 or reset:
+                Vk = 1. / np.linalg.norm(grad_tracker) * I
+            else:
+                
+                s = act_pt_tracker[-1] - act_pt_tracker[-2]
+                y = grad_tracker[-1] - grad_tracker[-2]
+                sigma = 1. / (s.T * y)
+                Vk = (I - sigma * s * y.T)*Vk_tracker[-1]*(I - sigma * y * s.T) + sigma * s * s.T
+                
+            Vk_tracker.append(Vk)
+            p = np.dot(-Vk, grad_tracker[-1])
+            p = p / np.linalg.norm(p)
+            p_stpst = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1])
+            if directional_deriv(act_pt_tracker[-1], p_stpst) < 0 and directional_deriv(act_pt_tracker[-1], p) > 0:
+                    print("changed p from: ", p)
+                    p = p_stpst
+            
+            p_tracker = np.vstack([p_tracker,p])
+            
+            phi0 = solve_funcf(act_pt_tracker[-1])
+            phiprime0 = directional_deriv(act_pt_tracker[-1], p_tracker[-1])
+            
+            amin = bracket_func(act_pt_tracker[-1], a_init_f, phi0, phiprime0,muf_1, muf_2, sigmaf, p_tracker[-1], solve_funcf, False)
+            
+            new_point = stepper(act_pt_tracker[-1], amin, p_tracker[-1])
+            act_alpha_tracker = np.vstack( [act_alpha_tracker, amin] )
+            act_pt_tracker = np.vstack([act_pt_tracker,new_point]) 
+            new_grad = grad_func(new_point)
+            grad_tracker = np.vstack([grad_tracker, new_grad])
+            
+            k += 1
+            mems += 1
+            if mems > 100: 
+                # clear memory
+                act_alpha_tracker = act_alpha_tracker[-4:-1]
+                act_pt_tracker = act_pt_tracker[-4:-1]
+                grad_tracker = grad_tracker[-4:-1]
+                p_tracker = p_tracker[-4:-1]
+                mems = 0
+                reset = True
+            
+        if debugf:
+                print("finished k=",k)
+                print("np.linalg.norm(grad_func(new_point),np.inf): ", np.linalg.norm(new_grad, np.inf))
+                plotter(np.vstack([act_pt_tracker,new_point]), solve_funcf, (-2.1,2.1))
+                
+        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1])
+    elif directionmethod == "scipy":
+        #scipy minimize with x0 and solve_funcf
+        result = minimize(solve_funcf, pt0f)
+        return result.x, result.fun
         
-            
-            
-            
-            
-            
