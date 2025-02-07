@@ -3,7 +3,12 @@
 #Jan 30th, 2025
 
 # %%
-from LineSearch1 import *
+import sys
+import os
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from LineSearch2 import * #If I want LineSearch3 do HW3.LineSearch3
 
 # %% Test 
 def sphere_func(vf):
@@ -27,6 +32,7 @@ phi_1 = phi0
 phiprime_1 = phiprime0
 amin = bracket_func(pt0, ainit, phi0, phiprime0, mu1, mu2, sigma,p, sphere_func)
 #It worked as expected
+
 # %% 1.4a Slanted quadratic function with Beta = 1.5
 func_calls = 0
 #  report both α∗ and x(k=1) = x(k=0) +α∗p)
@@ -68,16 +74,18 @@ update_grad_func(Rosenbrock)
 
 p = np.array([1.,-3.])
 pt0 = np.array([0., 2.])
-phi0 = Slantedquad(pt0)
+phi0 = Rosenbrock(pt0)
 phiprime0 = directional_deriv(pt0,p)
-ainit = 2.
+ainit = .2
 mu1 = 1e-4
 mu2 = .1
 sigma = 2.
 amin = bracket_func(pt0, ainit, phi0, phiprime0,mu1,mu2,sigma,p,Rosenbrock)
 print("1.4b Min Point: ", amin) #(1.578e-30,2)
+print("Should be: (0.5408, 0.3775)" )
 print("1.4b Alpha: ", alphafunc(amin,pt0,p)) #(1.578e-30, basically 0)
 print("function calls: ", func_calls) #209, it jumped away and came back for some reason.
+
 # %% 1.4c Jones Function
 func_calls = 0 
 def Jones(vf):
@@ -91,7 +99,7 @@ update_grad_func(Jones)
 
 p = np.array([1.,2.])
 pt0 = np.array([1., 1.])
-phi0 = Slantedquad(pt0)
+phi0 = Jones(pt0)
 phiprime0 = directional_deriv(pt0,p)
 ainit = 2.
 mu1 = 1e-4

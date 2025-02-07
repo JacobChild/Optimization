@@ -174,5 +174,5 @@ def pinpoint(pttf, phitf, phiptf, methodf, mu1f, mu2f, pf,  solve_func, maxiter 
     print("uh oh, maxiter reached, returning current newpoint(ap), pttf")
     newpoint = stepper(pttf[0],ap,pf)
     pttf = np.vstack([pttf,newpoint])
-    plotter(pttf, solve_func)
+    # plotter(pttf, solve_func)
     return newpoint, pttf
