@@ -3,6 +3,7 @@
 #Jan 30th, 2025
 
 #Needed packages
+#! .venv\Scripts\Activate.ps1
 import numpy as np #it looks like I could do import jax.numpy as jnp and that might be faster than numpy even
 import matplotlib.pyplot as plt
 from jax import grad
@@ -184,11 +185,11 @@ def pinpoint(pttf, phitf, phiptf, methodf, mu1f, mu2f, pf,  solve_func, maxiter 
         #     print("somehow positive grads, returning current ap")
         #     return ap
         k += 1
-    print("uh oh, maxiter reached, returning current ap = -.1, pttf to reset")
+    print("uh oh, maxiter reached, returning current ap = 0.001, pttf to reset")
     newpoint = stepper(pttf[0],ap,pf)
     pttf = np.vstack([pttf,newpoint])
     # plotter(pttf, solve_func)
-    return -.1, pttf
+    return 0.001, pttf
 
 def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solve_funcf, debugf = False):
     # provide different options for the linesearch
@@ -196,11 +197,13 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
     act_pt_tracker = np.array([pt0f])
     act_alpha_tracker = np.array([a_init_f])
     p_tracker = np.array([0.,0.])
+    grad_mag_tracker = []
     
     if directionmethod == "steepest_descent":
         k = 0
         mems = 0
-        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf) and (k < 1000):
+        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf):
+            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
             p = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1]) 
             p_tracker = np.vstack([p_tracker,p])
             if k == 0: 
@@ -224,11 +227,13 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
             act_pt_tracker = np.vstack([act_pt_tracker,new_point]) #? why did I do the line above originally anyway?
             new_grad = grad_func(new_point)
             grad_tracker = np.vstack([grad_tracker, new_grad])
+            # grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
 
             k += 1
             mems += 1
             if mems > 100: 
                 # clear memory
+                print("100 done, mems cleared :)")
                 act_alpha_tracker = act_alpha_tracker[-4:-1]
                 act_pt_tracker = act_pt_tracker[-4:-1]
                 grad_tracker = grad_tracker[-4:-1]
@@ -240,13 +245,14 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
                 print("np.linalg.norm(grad_func(new_point),np.inf): ", np.linalg.norm(new_grad, np.inf))
                 plotter(np.vstack([act_pt_tracker,new_point]), solve_funcf, (-2.1,2.1))
                 
-        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1])
+        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1]), grad_mag_tracker
     
     elif directionmethod == 'conj_grad':
         k = 0
         mems = 0
         reset = False
-        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf) and (k < 1000):
+        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf):
+            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
             if k == 0 or reset:
                 p = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1]) 
                 p_tracker = np.vstack([p_tracker,p])
@@ -258,6 +264,10 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
                 p_stpst = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1])
                 p = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1]) + beta * p_tracker[-2]
                 p = p / np.linalg.norm(p) 
+                reset_cond = np.dot(grad_tracker[-1].T,grad_tracker[-2]) / np.dot(grad_tracker[-1].T,grad_tracker[-1])
+                if reset_cond >= 0.1:
+                    print("reset_cond hit")
+                    reset = True
                 if directional_deriv(act_pt_tracker[-1], p_stpst) < 0 and directional_deriv(act_pt_tracker[-1], p) > 0:
                     print("changed p from: ", p)
                     p = p_stpst
@@ -277,8 +287,9 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
             
             k += 1
             mems += 1
-            if mems > 100: 
+            if mems > 50: 
                 # clear memory
+                print("50 done, mems cleared :)")
                 act_alpha_tracker = act_alpha_tracker[-4:-1]
                 act_pt_tracker = act_pt_tracker[-4:-1]
                 grad_tracker = grad_tracker[-4:-1]
@@ -291,7 +302,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
                 print("np.linalg.norm(grad_func(new_point),np.inf): ", np.linalg.norm(new_grad, np.inf))
                 plotter(np.vstack([act_pt_tracker,new_point]), solve_funcf, (-2.1,2.1))
                 
-        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1])
+        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1]), grad_mag_tracker
     
     elif directionmethod == "quasi-newton": 
         k = 0
@@ -300,7 +311,8 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
         reset = False
         I = np.eye(grad_tracker[-1].shape[0])
         Vk_tracker = []
-        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf) and (k < 1000):
+        while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf):
+            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
             if k == 0 or reset:
                 Vk = 1. / np.linalg.norm(grad_tracker) * I
             else:
@@ -335,6 +347,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
             mems += 1
             if mems > 100: 
                 # clear memory
+                print("100 done, mems cleared :)")
                 act_alpha_tracker = act_alpha_tracker[-4:-1]
                 act_pt_tracker = act_pt_tracker[-4:-1]
                 grad_tracker = grad_tracker[-4:-1]
@@ -347,9 +360,10 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
                 print("np.linalg.norm(grad_func(new_point),np.inf): ", np.linalg.norm(new_grad, np.inf))
                 plotter(np.vstack([act_pt_tracker,new_point]), solve_funcf, (-2.1,2.1))
                 
-        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1])
+        return act_pt_tracker[-1], solve_funcf(act_pt_tracker[-1]), grad_mag_tracker
+    
     elif directionmethod == "scipy":
         #scipy minimize with x0 and solve_funcf
         result = minimize(solve_funcf, pt0f)
-        return result.x, result.fun
+        return result.x, result.fun, result
         
