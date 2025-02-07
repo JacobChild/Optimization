@@ -6,16 +6,16 @@
 from LineSearch3 import *
 
 #%% Practice with sphere_func
-# func_calls = 0
-# update_grad_func(sphere_func)
-# x0 = np.array([2.,2.])
-# ainit = 2.
-# mu1 = 1e-6
-# mu2 = 1e-3
-# sigma = 2.
-# tau = 1e-4 #! is this a good value? I don't know where to start
+func_calls = 0
+update_grad_func(sphere_func)
+x0 = np.array([2.,2.])
+ainit = 2.
+mu1 = 1e-6
+mu2 = 1e-1
+sigma = 2.
+tau = 1e-4 
 
-# xstar, f_xstar = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, sphere_func, False)
+xstar, f_xstar, blah = linesearch('conj-grad', x0, ainit, mu1, mu2, sigma, tau, sphere_func, True)
 
 #%% 1.4a Slanted quadratic function with Beta = 1.5
 func_calls = 0
@@ -34,15 +34,15 @@ ainit = 1.1
 mu1 = 1e-6
 mu2 = 1e-3
 sigma = 2.
-tau = 1e-4 #! is this a good value? I don't know where to start
+tau = 1e-4 
 
-xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, slanted_quad, False)
+xstar, f_xstar, gradmag = linesearch('conj_grad', x0, ainit, mu1, mu2, sigma, tau, slanted_quad, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 plt.semilogy(gradmag)
-plt.xlabel('quasi-newton Loop Calls')
+plt.xlabel('conj_grad Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Slanted Quad quasi-newton Convergence, Func Calls = {func_calls}')
+plt.title(f'Slanted Quad conj_grad Convergence, Func Calls = {func_calls}')
 
 # %%
 func_calls = 0
@@ -57,19 +57,19 @@ update_grad_func(rosenbrock)
 x0 = np.array([0.,2.])
 ainit = 0.1
 mu1 = 1e-6
-mu2 = 1e-3
+mu2 = 1e-1
 sigma = 2.
-tau = 1e-4 #! is this a good value? I don't know where to start
+tau = 1e-4 
 
-xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, rosenbrock, False)
+xstar, f_xstar, gradmag = linesearch('conj_grad', x0, ainit, mu1, mu2, sigma, tau, rosenbrock, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 #Convergence plot
 # zpts = [rosenbrock(xy) for xy in xpts]
 plt.semilogy(gradmag)
-plt.xlabel('quasi-newton Loop Calls')
+plt.xlabel('conj_grad Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Rosenbrock quasi-newton Convergence, Func Calls = {func_calls}')
+plt.title(f'Rosenbrock conj_grad Convergence, Func Calls = {func_calls}')
 
 
 # %% 1.4c Jones Function
@@ -86,17 +86,17 @@ update_grad_func(jones)
 x0 = np.array([1.,1.])
 ainit = 0.1
 mu1 = 1e-6
-mu2 = 1e-3
+mu2 = 1e-1
 sigma = 2.
-tau = 1e-4 #! is this a good value? I don't know where to start
+tau = 1e-4 
 
-xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, jones, False)
+xstar, f_xstar, gradmag = linesearch('conj_grad', x0, ainit, mu1, mu2, sigma, tau, jones, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 # Convergence Plot 
 plt.semilogy(gradmag)
-plt.xlabel('quasi-newton Loop Calls')
+plt.xlabel('conj_grad Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Jones quasi-newton Convergence, Func Calls = {func_calls}')
+plt.title(f'Jones conj_grad Convergence, Func Calls = {func_calls}')
 
 # %%

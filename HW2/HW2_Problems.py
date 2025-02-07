@@ -18,7 +18,7 @@ def sphere_func(vf):
 
 update_grad_func(sphere_func) #! run for each problem
 
-p = np.array([-2.,4.]).T #direction to search ie along the x axis, so y = y we hold y constant 
+p = np.array([-2.,-7.]).T #direction to search ie along the x axis, so y = y we hold y constant 
 pt0 = np.array([9.,9.]) #initial point [-4.,10.] is a trouble point, errors at [9,-9] and p = -2,4
 phi0 = sphere_func(pt0) #intial output
 ainit = 2. #initial step size
