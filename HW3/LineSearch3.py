@@ -203,7 +203,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
         k = 0
         mems = 0
         while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf):
-            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
+            
             p = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1]) 
             p_tracker = np.vstack([p_tracker,p])
             if k == 0: 
@@ -228,6 +228,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
             new_grad = grad_func(new_point)
             grad_tracker = np.vstack([grad_tracker, new_grad])
             # grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
+            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
 
             k += 1
             mems += 1
@@ -252,7 +253,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
         mems = 0
         reset = False
         while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf):
-            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
+            
             if k == 0 or reset:
                 p = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1]) 
                 p_tracker = np.vstack([p_tracker,p])
@@ -284,6 +285,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
             act_pt_tracker = np.vstack([act_pt_tracker,new_point]) 
             new_grad = grad_func(new_point)
             grad_tracker = np.vstack([grad_tracker, new_grad])
+            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
             
             k += 1
             mems += 1
@@ -312,19 +314,22 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
         I = np.eye(grad_tracker[-1].shape[0])
         Vk_tracker = []
         while (np.linalg.norm(grad_tracker[-1], np.inf) > tauf):
-            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
+            
             if k == 0 or reset:
                 Vk = 1. / np.linalg.norm(grad_tracker) * I
             else:
-                
+                #! matrix operations are critical
                 s = act_pt_tracker[-1] - act_pt_tracker[-2]
                 y = grad_tracker[-1] - grad_tracker[-2]
-                sigma = 1. / (s.T * y)
-                Vk = (I - sigma * s * y.T)*Vk_tracker[-1]*(I - sigma * y * s.T) + sigma * s * s.T
+                # Reshape s and y to column vectors if needed
+                s = s.reshape(-1, 1)
+                y = y.reshape(-1, 1)
+                sigma = 1.0 / (s.T @ y)  # Use matrix multiplication @
+                Vk = (I - sigma * (s @ y.T)) @ Vk_tracker[-1] @ (I - sigma * (y @ s.T)) + sigma * (s @ s.T)
                 
             Vk_tracker.append(Vk)
             p = np.dot(-Vk, grad_tracker[-1])
-            p = p / np.linalg.norm(p)
+            # p = p / np.linalg.norm(p)
             p_stpst = -grad_tracker[-1] / np.linalg.norm(grad_tracker[-1])
             if directional_deriv(act_pt_tracker[-1], p_stpst) < 0 and directional_deriv(act_pt_tracker[-1], p) > 0:
                     print("changed p from: ", p)
@@ -342,6 +347,7 @@ def linesearch(directionmethod, pt0f, a_init_f, muf_1, muf_2, sigmaf, tauf, solv
             act_pt_tracker = np.vstack([act_pt_tracker,new_point]) 
             new_grad = grad_func(new_point)
             grad_tracker = np.vstack([grad_tracker, new_grad])
+            grad_mag_tracker.append(np.linalg.norm(grad_tracker[-1]))
             
             k += 1
             mems += 1

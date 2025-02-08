@@ -6,16 +6,16 @@
 from LineSearch3 import *
 
 #%% Practice with sphere_func
-func_calls = 0
-update_grad_func(sphere_func)
-x0 = np.array([2.,2.])
-ainit = 2.
-mu1 = 1e-6
-mu2 = 1e-1
-sigma = 2.
-tau = 1e-4 
+# func_calls = 0
+# update_grad_func(sphere_func)
+# x0 = np.array([2.,2.])
+# ainit = 2.
+# mu1 = 1e-6
+# mu2 = 1e-1
+# sigma = 2.
+# tau = 1e-4 
 
-xstar, f_xstar, blah = linesearch('conj-grad', x0, ainit, mu1, mu2, sigma, tau, sphere_func, True)
+# xstar, f_xstar, blah = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, sphere_func, True)
 
 #%% 1.4a Slanted quadratic function with Beta = 1.5
 func_calls = 0
@@ -36,13 +36,15 @@ mu2 = 1e-3
 sigma = 2.
 tau = 1e-4 
 
-xstar, f_xstar, gradmag = linesearch('conj_grad', x0, ainit, mu1, mu2, sigma, tau, slanted_quad, False)
+xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, slanted_quad, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
-plt.semilogy(gradmag)
-plt.xlabel('conj_grad Loop Calls')
+plt.semilogy(gradmag, label = 'Gradient Magnitude')
+plt.axhline(y=tau, color = 'g', linestyle = '--', label = f'tau = {tau}')
+plt.xlabel('Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Slanted Quad conj_grad Convergence, Func Calls = {func_calls}')
+plt.legend()
+plt.title('Slanted Quad Quasi-Newton Convergence')
 
 # %%
 func_calls = 0
@@ -61,15 +63,17 @@ mu2 = 1e-1
 sigma = 2.
 tau = 1e-4 
 
-xstar, f_xstar, gradmag = linesearch('conj_grad', x0, ainit, mu1, mu2, sigma, tau, rosenbrock, False)
+xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, rosenbrock, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 #Convergence plot
 # zpts = [rosenbrock(xy) for xy in xpts]
-plt.semilogy(gradmag)
-plt.xlabel('conj_grad Loop Calls')
+plt.semilogy(gradmag, label = 'Gradient Magnitude')
+plt.axhline(y=tau, color = 'g', linestyle = '--', label = f'tau = {tau}')
+plt.xlabel('Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Rosenbrock conj_grad Convergence, Func Calls = {func_calls}')
+plt.legend()
+plt.title('Rosenbrock Quasi-Newton Convergence')
 
 
 # %% 1.4c Jones Function
@@ -90,13 +94,15 @@ mu2 = 1e-1
 sigma = 2.
 tau = 1e-4 
 
-xstar, f_xstar, gradmag = linesearch('conj_grad', x0, ainit, mu1, mu2, sigma, tau, jones, False)
+xstar, f_xstar, gradmag = linesearch('quasi-newton', x0, ainit, mu1, mu2, sigma, tau, jones, False)
 print("1.4a Min Point: ", xstar) #(-2,2)
 print("function calls: ", func_calls) #6, although this likely includes the initial making the derivative function too
 # Convergence Plot 
-plt.semilogy(gradmag)
-plt.xlabel('conj_grad Loop Calls')
+plt.semilogy(gradmag, label = 'Gradient Magnitude')
+plt.axhline(y=tau, color = 'g', linestyle = '--', label = f'tau = {tau}')
+plt.xlabel('Loop Calls')
 plt.ylabel('Gradient Magnitude')
-plt.title(f'Jones conj_grad Convergence, Func Calls = {func_calls}')
+plt.legend()
+plt.title('Jones Quasi-Newton Convergence')
 
 # %%
