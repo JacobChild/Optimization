@@ -20,6 +20,7 @@ from truss import *
 # Bounds: Each element should have a cross-sectional area of at least 0.1 in2 for manufacturing reasons (bound constraint).
 
 # %% Functions for setup (objective and constraints) 
+TrussFunctionCalls = 0
 def TrussMass(Af):
     global TrussFunctionCalls
     TrussFunctionCalls += 1 
