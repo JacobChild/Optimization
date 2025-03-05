@@ -7,17 +7,8 @@
 import numpy as np
 from scipy.optimize import minimize, fsolve
 import matplotlib.pyplot as plt
-
+import jax
 # %% Problem 1
-#! get TA help
-s1_0 = 0
-s2_0 = 0
-sig1_0 = 0
-sig2_0 = 0
-s1_1 = 1
-s2_1 = 1
-sig1_1 = 1
-sig2_1 = 1
 
 def res_talker(xf, stringer):
     x, y, sig1, s1, sig2, s2 = xf
@@ -41,7 +32,7 @@ def dL_s1_0_s2_0(xf):
     dldsig1 = x**2 + y**2 - 10 + s1**2
     dlds1 = 2 * sig1 * s1
     dldsig2 = x + y - 3 + s2**2 
-    dlds2 = 2* s ig2* s 2  
+    dlds2 = 2 * sig2 * s2  
     return np.array([dldx, dldy, dldsig1, dlds1, dldsig2, dlds2])
 
 def dL_sig1_0_sig2_0(xf):
@@ -159,7 +150,30 @@ def mesher(funcf, bounds=(-4,4), resolution = 100):
     Z_examp = funcf([X_examp_mesh, Y_examp_mesh])
     return X_examp_mesh, Y_examp_mesh, Z_examp
     
+def convg_plotter(xf, funcf):
+    best = funcf(xf[-1])
+    tracker = []
+    for x in xf:
+        fx = funcf(x)
+        tracker.append(np.abs(best - fx))
+    plt.semilogy(np.array(tracker))
+    plt.xlabel('Iteration')
+    plt.ylabel('abs(f* - f(x))')
+    plt.title(f'Convergence of Constrained {funcf.__name__}')
+    plt.show()
+    
+def convg_plotter2(xf, funcf):
+    gradf = jax.grad(funcf)
+    tracker = []
+    for x in xf:
+        tracker.append(np.linalg.norm(gradf(x)))
+    plt.semilogy(np.array(tracker))
+    plt.xlabel('Iteration')
+    plt.ylabel('Gradient')
+    plt.title(f'Convergence of Constrained {funcf.__name__}')
+    plt.show()
 
+    
 # %% McCormick
 def McCormick(xf): #actual min = f(-0.54719, -1.54719) = -1.9133
     x, y = xf
@@ -212,6 +226,8 @@ plt.ylabel('y')
 plt.title('McCormick Minimization with constraints')
 plt.legend()
 plt.show()
+
+convg_plotter2(res_pts, McCormick)
 
 
 # %% Three Hump Camel 
@@ -268,6 +284,8 @@ plt.ylabel('y')
 plt.title('Three Hump Camel Minimization with constraints')
 plt.legend()
 plt.show()
+
+convg_plotter2(res_pts, three_hump_camel)
 
 # %% Himmelblau
 
@@ -327,9 +345,7 @@ plt.title('Himmelblau Minimization with constraints')
 plt.legend()
 plt.show()
 
-# %% 
-#! I need to do a convergence plot for each of the above!!! Maybe add it to my callback function and have a quick plot function and save it or just do np.abs(f(xstar) - f(x)), is what Brigham did
-
+convg_plotter2(res_pts, Himmelblau)
 
 # %% Write a basic constrained gradient-based optimizer using a penalty method. Test your method out on your three functions and constraints you identified in question 5.2 above. In a table, compare the solution accuracy and convergence efficiency of your own method against the optimizer you used in 5.2. Briefly describe what you learned in 400 words or less.
 # Quadratic penalty method
