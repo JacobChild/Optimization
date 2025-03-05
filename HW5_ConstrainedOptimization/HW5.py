@@ -8,6 +8,7 @@ import numpy as np
 from scipy.optimize import minimize, fsolve
 import matplotlib.pyplot as plt
 import jax
+import copy
 # %% Problem 1
 
 def res_talker(xf, stringer):
@@ -169,15 +170,62 @@ def convg_plotter2(xf, funcf):
         tracker.append(np.linalg.norm(gradf(x)))
     plt.semilogy(np.array(tracker))
     plt.xlabel('Iteration')
-    plt.ylabel('Gradient')
+    plt.ylabel('Gradient of f(x)')
     plt.title(f'Convergence of Constrained {funcf.__name__}')
     plt.show()
 
+# %% Write a basic constrained gradient-based optimizer using a penalty method. Test your method out on your three functions and constraints you identified in question 5.2 above. In a table, compare the solution accuracy and convergence efficiency of your own method against the optimizer you used in 5.2. Briefly describe what you learned in 400 words or less.
+# Quadratic penalty method
+#equality: fhat(x) = f(x) + mu/2 * sum(h_i(x)^2)
+#inequality:fhat = f(x) + mu/2 * sum(max(0,g(x))^2)
+#combined fhat = f(x) + mu_h/2 * sum(h(x)^2) + mu_g/2 * sum(max(0, g(x))^2)
+def quad_penalty(x0f, funcf, hf, gf, mu_h=0.2, mu_g=0.2, rho = 1.2, tol=1e-4, max_iter = 100): #AI created from my pseudocode, then I went line by line to understand etc
+    xstars = []
+    all_points = []
+    x = x0f
+    all_points.append(x)
+        
+    #while not converged
+    for _ in range(max_iter):
+        inner_point_tracker = []
+        inner_point_tracker.append(x)
+        #new fhat objective func
+        def fhat(x):
+            # print(f"h(x): {hf(x)}, g(x): {gf(x)}")
+            return funcf(x) + mu_h/2 * np.sum(hf(x)**2) + mu_g/2 * np.sum(np.maximum(0, -gf(x))**2) #I made gf(x) negative because this method says that negative is feasible and positive isn't, but scipy wants positive is feasible
+        #solve
+        res = minimize(fhat, x, callback=inner_point_tracker.append)
+        x = res.x
+        xstars.append(x)
+        temp1 = copy.deepcopy(inner_point_tracker)
+        all_points.extend(temp1)
+        #converged?
+        if np.linalg.norm(hf(x)) < tol and np.all(gf(x) <= tol):
+            #hf(x) is normed as "eq constraints should be exactly zero, so the norm is used to measure how close they are to zero"
+            #np.all(gf(x) <= tol) "checks if all ineq const are ... w/in tol... should be less than or = to zero, so np.all checks if all are satisfied"
+            print('converged')
+            return np.array(all_points) #xstars
+        #update params
+        mu_h *= rho 
+        mu_g *= rho 
+        
+    print('max_iters reached')
+    return np.array(all_points) #xstars
+#! somehow all_points isn't actually returning all_points
+
+def summarizer(xf_scipy, xf_mine, funcf):
+    print(f'Summary stats for {funcf.__name__}')
+    print('scipy iters: ', xf_scipy.shape[0])
+    print('My penalty iters: ', xf_mine.shape[0])
+    fx_scipy = funcf(xf_scipy[-1])
+    fx_mine = funcf(xf_mine[-1])
+    print('Percent f(x) off: ', (fx_scipy - fx_mine) / fx_scipy * 100, '%' )
+    print('Distance off: ', np.linalg.norm(xf_scipy[-1] - xf_mine[-1]))
     
 # %% McCormick
 def McCormick(xf): #actual min = f(-0.54719, -1.54719) = -1.9133
     x, y = xf
-    return np.sin(x+y) + (x-y)**2 -1.5*x + 2.5*y + 1.0
+    return jax.numpy.sin(x+y) + (x-y)**2 -1.5*x + 2.5*y + 1.0
 # can I force it to end up around (1.5,3) is that another local min type thing? or (1.5,0) on that little saddle looking thing? 
 def g_McCormick_1(xf):
     x, y = xf
@@ -199,6 +247,10 @@ def my_tracker(xk):
 
 #solve/minimize 
 res_mc = minimize(McCormick,x0_Mc, callback=my_tracker, constraints = McCormick_constraints)
+#using my quad_penalty method 
+res_my_mc = quad_penalty(x0_Mc, McCormick,g_McCormick_2, g_McCormick_1, mu_g = .8, rho=1.5)
+summarizer(np.array(point_tracker), res_my_mc, McCormick)
+
 #Plotting
 X_mc, Y_mc, Z_mc = mesher(McCormick, bounds = (-3,3))
 plt.contour(X_mc, Y_mc, Z_mc, levels=50, cmap = 'viridis') #background contour
@@ -212,9 +264,15 @@ plt.plot(mc_xg_vals, mc_yg_vals, 'r--', label = 'Sin line constraint')
 
 res_pts = np.array(point_tracker)
 num_points = res_pts.shape[0]
+num_points2 = res_my_mc.shape[0]
 colors = plt.cm.Blues(np.linspace(0, 1, num_points))
+colors2 = plt.cm.Oranges(np.linspace(0, 1, num_points2))
 # plt.plot(res_pts)
 for i, (pt, color) in enumerate(zip(res_pts, colors)):
+    plt.scatter(pt[0], pt[1], color=color, edgecolor='black')
+    plt.text(pt[0], pt[1], f'P{i}', fontsize=9, ha='right')
+    
+for i, (pt, color) in enumerate(zip(res_my_mc, colors2)):
     plt.scatter(pt[0], pt[1], color=color, edgecolor='black')
     plt.text(pt[0], pt[1], f'P{i}', fontsize=9, ha='right')
 
@@ -257,6 +315,14 @@ def my_tracker(xk):
 
 #solve/minimize 
 res_th = minimize(three_hump_camel,x0_th, callback=my_tracker, constraints = threehump_constraints)
+#my quad_penalty method
+comb_g_th = lambda x: np.array([g_threehump_1(x), g_threehump_2(x)])
+def g_throw(xf):
+    return 0
+
+res_my_th = quad_penalty(x0_th, three_hump_camel ,g_throw, comb_g_th)
+
+summarizer(np.array(point_tracker), res_my_th, three_hump_camel)
 #Plotting
 X_th, Y_th, Z_th = mesher(three_hump_camel, bounds = (-3,3))
 plt.contour(X_th, Y_th, Z_th, levels=50, cmap = 'viridis') #background contour
@@ -270,9 +336,15 @@ plt.fill_betweenx(np.linspace(-3,3),-1,-3, color = 'r', alpha = 0.5)
 
 res_pts = np.array(point_tracker)
 num_points = res_pts.shape[0]
+num_points2 = res_my_th.shape[0]
 colors = plt.cm.Blues(np.linspace(0, 1, num_points))
+colors2 = plt.cm.Oranges(np.linspace(0, 1, num_points2))
 # plt.plot(res_pts)
 for i, (pt, color) in enumerate(zip(res_pts, colors)):
+    plt.scatter(pt[0], pt[1], color=color, edgecolor='black')
+    plt.text(pt[0], pt[1], f'P{i}', fontsize=9, ha='right')
+    
+for i, (pt, color) in enumerate(zip(res_my_th, colors2)):
     plt.scatter(pt[0], pt[1], color=color, edgecolor='black')
     plt.text(pt[0], pt[1], f'P{i}', fontsize=9, ha='right')
 
@@ -317,6 +389,12 @@ def my_tracker(xk):
 
 #solve/minimize 
 res_h = minimize(Himmelblau,x0_Himmel, callback=my_tracker, constraints = Himmel_constraints)
+
+#my quad penalty method 
+comb_g_h = lambda x: np.array([g_Himmelblau_1(x), g_Himmelblau_2(x)])
+res_my_h = quad_penalty(x0_Himmel, Himmelblau,g_throw, comb_g_h, mu_g=0.8)
+summarizer(np.array(point_tracker), res_my_h, Himmelblau)
+
 #Plotting
 X_h, Y_h, Z_h = mesher(Himmelblau, bounds = (-4,4))
 plt.contour(X_h, Y_h, Z_h, levels=50, cmap = 'viridis') #background contour
@@ -330,9 +408,15 @@ plt.fill_between(np.linspace(-4,4),0, 4, color = 'r', alpha = 0.5)
 
 res_pts = np.array(point_tracker)
 num_points = res_pts.shape[0]
+num_points2 = res_my_h.shape[0]
 colors = plt.cm.Blues(np.linspace(0, 1, num_points))
+colors2 = plt.cm.Oranges(np.linspace(0, 1, num_points2))
 # plt.plot(res_pts)
 for i, (pt, color) in enumerate(zip(res_pts, colors)):
+    plt.scatter(pt[0], pt[1], color=color, edgecolor='black')
+    plt.text(pt[0], pt[1], f'P{i}', fontsize=9, ha='right')
+    
+for i, (pt, color) in enumerate(zip(res_my_h, colors2)):
     plt.scatter(pt[0], pt[1], color=color, edgecolor='black')
     plt.text(pt[0], pt[1], f'P{i}', fontsize=9, ha='right')
 
@@ -347,71 +431,5 @@ plt.show()
 
 convg_plotter2(res_pts, Himmelblau)
 
-# %% Write a basic constrained gradient-based optimizer using a penalty method. Test your method out on your three functions and constraints you identified in question 5.2 above. In a table, compare the solution accuracy and convergence efficiency of your own method against the optimizer you used in 5.2. Briefly describe what you learned in 400 words or less.
-# Quadratic penalty method
-#equality: fhat(x) = f(x) + mu/2 * sum(h_i(x)^2)
-#inequality:fhat = f(x) + mu/2 * sum(max(0,g(x))^2)
-#combined fhat = f(x) + mu_h/2 * sum(h(x)^2) + mu_g/2 * sum(max(0, g(x))^2)
-def quad_penalty_1h1g(xf, funcf, hf, gf):
-    x, y = xf 
-    mu_h = 0.2
-    mu_g = 0.2
-    rho = 1.2
-    xstars = []
-    #while not converged
-    xstar = funcf(x,y) + mu_h/2 * np.sum(hf(x,y)**2) + mu_g/2 * np.sum(np.max(0, gf(x,y))**2)
-    xstars.append(xstar) 
-    mu_h = mu_h * rho 
-    mu_g = mu_g * rho 
 
-#TODO: I am here
-
-# %% #!AI recommended use as reference? figure out what it is actually doing if I use anything
-import numpy as np
-from scipy.optimize import minimize
-
-def quad_penalty_1h1g(xf, funcf, hf, gf, mu_h=0.2, mu_g=0.2, rho=1.2, tol=1e-6, max_iter=100):
-    xstars = []
-    x = xf
-
-    for _ in range(max_iter):
-        # Define the penalized objective function
-        def penalized_func(x):
-            return funcf(x) + mu_h / 2 * np.sum(hf(x)**2) + mu_g / 2 * np.sum(np.maximum(0, gf(x))**2)
-
-        # Solve the unconstrained optimization problem
-        res = minimize(penalized_func, x)
-        x = res.x
-        xstars.append(x)
-
-        # Check convergence
-        if np.linalg.norm(hf(x)) < tol and np.all(gf(x) <= tol):
-            break
-
-        # Update penalty parameters
-        mu_h *= rho
-        mu_g *= rho
-
-    return x, xstars
-
-# Example usage with Himmelblau function and constraints
-def Himmelblau(xf):
-    x, y = xf
-    return (x**2 + y - 11.0)**2 + (x + y**2 - 7)**2
-
-def g_Himmelblau_1(xf):
-    x, y = xf
-    return -y
-
-def g_Himmelblau_2(xf):
-    x, y = xf
-    return 2.**2 - ((x - 2)**2 + (y + 2)**2)
-
-x0_Himmel = np.array([0., 0.])
-hf = lambda x: np.array([])
-gf = lambda x: np.array([g_Himmelblau_1(x), g_Himmelblau_2(x)])
-
-x_opt, xstars = quad_penalty_1h1g(x0_Himmel, Himmelblau, hf, gf)
-
-print("Optimal solution:", x_opt)
-print("Iteration history:", xstars)
+# %%
