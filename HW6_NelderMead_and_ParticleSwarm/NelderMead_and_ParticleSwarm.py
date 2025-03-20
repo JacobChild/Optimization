@@ -1,4 +1,4 @@
-#GeneticAlg_Nelder.py
+#NelderMead_and_ParticleSwarm.py
 #Jacob Child
 #March 17th, 2025 Happy St. Patty's day!
 
@@ -19,8 +19,8 @@ def simple_parab_vecfunc(xf):
     
 def egg_carton_func(xf):
     # print('xf: ', xf)
-    global xtracker
-    xtracker = np.vstack([xtracker, xf])
+    # global xtracker
+    # xtracker = np.vstack([xtracker, xf])
     x1, x2 = xf
     return 0.1*x1**2 + 0.1*x2**2 - np.cos(3*x1) - np.cos(3*x2)
 
@@ -52,7 +52,7 @@ def plotter(ptsf, funcf, bounds = (-4.,4.), highres = True, flag = True, resolut
 
     # Scatter plot the points in ptsf
     num_points = ptsf.shape[0]
-    colors = plt.cm.Blues(np.linspace(0.3, 1, num_points))
+    colors = plt.cm.Blues(np.linspace(1, 1, num_points))
 
     for i, (pt, color) in enumerate(zip(ptsf, colors)):
         plt.scatter(pt[0], pt[1], color=color, label=f'Point {i}')
@@ -153,7 +153,9 @@ def Nelder_Mead(funcf, x0, tau_x, tau_f):
             delta_x = np.sum([np.linalg.norm(x - simplex[-1]) for x in simplex[:-1]]) 
             delta_f = np.sqrt(np.sum([(funcf(xi) - np.mean([funcf(x) for x in simplex]))**2 for xi in simplex])/(n+1))
     #15 end everything else, go back to step 2
-    return simplex[0], funcf(simplex[0])
+    simplex = simplex[np.argsort([funcf(x) for x in simplex])]
+    xtracker = np.vstack([xtracker, simplex])
+    return simplex, funcf(simplex[0])
 
 
 
@@ -191,25 +193,26 @@ def plot_simplex(simplex, funcf, bounds=(-4., 4.), resolution=100, padding=0.5):
     plt.contour(X_examp_mesh, Y_examp_mesh, Z_examp, levels=50, cmap='viridis')
     
     # set up colors for the points and triangles (ie all the points and sides of a simplex are the same color), so have each color repeat 3 times?
+    # Set up colors for the points
     num_points = simplex.shape[0]
-    colors = plt.cm.Blues(np.linspace(0.3, 1, num_points))
-    
-    # Plot the simplex
-    for i, vertex in enumerate(simplex):
-        plt.scatter(vertex[0], vertex[1], color=colors[i], edgecolor='black')
-        # plt.text(vertex[0], vertex[1], f'V{i}', fontsize=9, ha='right')
+    point_colors = plt.cm.Blues(np.linspace(0.3, 1, num_points))
 
-    # Connect the simplex vertices with lines
+    # Set up colors for the triangles
+    num_triangles = num_points // 3
+    triangle_colors = plt.cm.Blues(np.linspace(0.3, 1, num_triangles))
+
     # Connect the simplex vertices with lines in sets of 3
     for i in range(0, len(simplex), 3):  # Iterate in steps of 3
-        # Ensure we only process valid sets of 3 vertices
-        if i + 2 < len(simplex):
+        if i + 2 < len(simplex):  # Ensure valid sets of 3 vertices
             plt.plot(
                 [simplex[i][0], simplex[i + 1][0], simplex[i + 2][0], simplex[i][0]],  # Close the triangle
                 [simplex[i][1], simplex[i + 1][1], simplex[i + 2][1], simplex[i][1]],
-                color=colors[i // 3],  # Use a color for each set of 3 vertices
-                linestyle='--'
+                color=triangle_colors[i // 3]  # Use a color for each triangle
             )
+            
+            # Plot the simplex points
+    for i, vertex in enumerate(simplex):
+        plt.scatter(vertex[0], vertex[1], color=point_colors[i], edgecolor='black')
 
     # Add labels and title
     plt.colorbar(label='Function value')
@@ -222,7 +225,51 @@ def plot_simplex(simplex, funcf, bounds=(-4., 4.), resolution=100, padding=0.5):
     plt.show()
 
 # %% 6.2 Use existing optimizer Nelder-Mead method and compare to my own, vary 5 initial guesses, put in table 
-#! DO this!!!
+x0_1 = np.array([1., 1.])
+xtracker = np.array([x0_1])
+x_min_1, f_min_1 = Nelder_Mead(egg_carton_func, x0_1, tau_x, tau_f)
+print('x0_1 iters (mine): ', xtracker.shape[0], 'x_min_1: ', x_min_1[0], 'f_min_1: ', f_min_1)
+x0_1_sp = minimize(egg_carton_func, x0_1, method='Nelder-Mead', options={'xatol': 1e-5, 'fatol': 1e-5}
+)
+print('x0_1 iters (scipy): ', x0_1_sp.nit, 'x0_1: ', x0_1_sp.x, 'f_min_1: ', x0_1_sp.fun)
+x0_2 = np.array([5., 5.])
+xtracker = np.array([x0_2])
+x_min_2, f_min_2 = Nelder_Mead(egg_carton_func, x0_2, tau_x, tau_f)
+print('x0_2 iters (mine): ', xtracker.shape[0], 'x_min_2: ', x_min_2[0], 'f_min_2: ', f_min_2)
+x0_2_sp = minimize(egg_carton_func, x0_2, method='Nelder-Mead', options={'xatol': 1e-5, 'fatol': 1e-5}
+)
+print('x0_2 iters (scipy): ', x0_2_sp.nit, 'x0_2: ', x0_2_sp.x, 'f_min_2: ', x0_2_sp.fun)
+x0_3 = np.array([-3., -3.])
+xtracker = np.array([x0_3])
+x_min_3, f_min_3 = Nelder_Mead(egg_carton_func, x0_3, tau_x, tau_f)
+print('x0_3 iters (mine): ', xtracker.shape[0], 'x_min_3: ', x_min_3[0], 'f_min_3: ', f_min_3)
+x0_3_sp = minimize(egg_carton_func, x0_3, method='Nelder-Mead', options={'xatol': 1e-5, 'fatol': 1e-5}
+)
+print('x0_3 iters (scipy): ', x0_3_sp.nit, 'x0_3: ', x0_3_sp.x, 'f_min_3: ', x0_3_sp.fun)
+x0_4 = np.array([0., 0.])
+xtracker = np.array([x0_4])
+x_min_4, f_min_4 = Nelder_Mead(egg_carton_func, x0_4, tau_x, tau_f)
+print('x0_4 iters (mine): ', xtracker.shape[0], 'x_min_4: ', x_min_4[0], 'f_min_4: ', f_min_4)
+x0_4_sp = minimize(egg_carton_func, x0_4, method='Nelder-Mead', options={'xatol': 1e-5, 'fatol': 1e-5}
+)
+print('x0_4 iters (scipy): ', x0_4_sp.nit, 'x0_4: ', x0_4_sp.x, 'f_min_4: ', x0_4_sp.fun)
+x0_5 = np.array([-1., 1.])
+xtracker = np.array([x0_5])
+x_min_5, f_min_5 = Nelder_Mead(egg_carton_func, x0_5, tau_x, tau_f)
+print('x0_5 iters (mine): ', xtracker.shape[0], 'x_min_5: ', x_min_5[0], 'f_min_5: ', f_min_5)
+x0_5_sp = minimize(egg_carton_func_forplot, x0_5, method='Nelder-Mead', options={'xatol': 1e-5, 'fatol': 1e-5}
+)
+print('x0_5 iters (scipy): ', x0_5_sp.nit, 'x0_5: ', x0_5_sp.x, 'f_min_5: ', x0_5_sp.fun)
+
+#%% Plots for 6.1
+plot_simplex(xtracker, egg_carton_func_forplot, bounds=(-4., 4.), resolution=100, padding=0.5)
+#convergence plot 
+fs_convg = np.array([egg_carton_func(x) for x in xtracker])
+plt.plot(fs_convg)
+plt.xlabel('Iteration * 3 (each iteration has 3 function evaluations)')
+plt.ylabel('Function value')
+plt.title('Convergence of Nelder-Mead')
+plt.show()
 
 # %% Implement my own version of particle swarm optimization
 #PSO Pseudocode (based off of algorithm 7.6 in the book):
@@ -231,6 +278,7 @@ def plot_simplex(simplex, funcf, bounds=(-4., 4.), resolution=100, padding=0.5):
 #notes: x_i, i denotes the individual, k is the iteration
 def particle_swarm(funcf, bounds, n_particles, n_iter, alpha, Beta_max, gamma_max, coef_flag = False):
     k = 0
+    global All_particles_tracker
     #1. initialize positions x and velocities delta_x, use latin hypercube sampling
     #My particle matrix headers: matrix size is n_particles x vars_long. x,y, f(x,y), x_best, y_best, f_best, delta_x, delta_y
     # particles = np.zeros((n_particles, 11))
@@ -253,8 +301,10 @@ def particle_swarm(funcf, bounds, n_particles, n_iter, alpha, Beta_max, gamma_ma
     gammas = np.random.uniform(0., 2.0, n_particles).reshape(n_particles, 1)
     particles = np.hstack([x, y, f0, x, y, f0, delta_x, delta_y, alphas, betas, gammas])
     best_particle = particles[np.argmin(particles[:,2])]
+    xs = particles[:,0:2]
+    plotter(xs, funcf, bounds=bounds, highres=True, resolution = 1000)
     #2. Big while not converged loop 
-    while np.abs(np.median(particles[:,6:8])) > 1e-5 and k < n_iter:
+    while np.abs(np.median(particles[:,6:8])) > 1e-7 and k < n_iter:
         #headers: x [0], y [1], f(x,y) [2], x_best [3], y_best [4], f_best [5], delta_x [6], delta_y [7], alpha [8], beta [9], gamma [10]
         #3. for each particle i = 1 to n_particles, update bests
         for p in particles:
@@ -283,11 +333,19 @@ def particle_swarm(funcf, bounds, n_particles, n_iter, alpha, Beta_max, gamma_ma
             #11. Update the function value
             p[2] = funcf(p[0:2])
         #12. end for i
+        #plot the particles every 20 iters, ie 0, 20, 40 etc 
+        if k % 20 == 0:
+            xs = particles[:,0:2]
+            plotter(xs, funcf, bounds=(-3,3), highres=False, resolution = 1000)
+        
+        
         k += 1
     #13. end for k
     print('k: ', k)
     # print('Conv: ', np.mean(particles[:,6:8]))
     print('Conv_med: ', np.median(particles[:,6:8]))
+    xs = particles[:,0:2]
+    plotter(xs, funcf, bounds=(-3,3), highres=True, resolution = 1000)
     return best_particle[0:2], best_particle[5]
 
 #%% speedy_particle_swarm See copilot for suggestions later
@@ -335,4 +393,21 @@ x_min_social, f_min_social = particle_swarm(egg_carton_func, bounds, n_particles
 
 
 # plot note, use quiver
+# %% 6.4 Apply PSO to a new test function
+def Himmelblau(xf): #actual min = 0 at (3,2), (-2.805118, 3.1312), (-3.77931, -3.283186), (3.584428, -1.848126)
+    x, y = xf
+    return (x**2 + y - 11.0)**2 + (x + y**2 - 7)**2
+
+def three_hump_camel(xf): #actual min = f(0,0) = 0
+    x, y = xf
+    return 2.0*x**2 - 1.05*x**4 + x**6 / 6.0 + x*y + y**2
+
+All_particles_tracker = []
+bounds = (-15., 15.) #for fun make them large
+n_particles = 100
+n_iter = 400
+x_threehump, f_threehump = particle_swarm(three_hump_camel, bounds, n_particles, n_iter, alpha, Beta_max, gamma_max)
+
+
+
 # %%
