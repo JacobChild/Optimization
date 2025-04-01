@@ -1,0 +1,98 @@
+03/24/2025 10:11:53: Problem = Wing_forcfd2 v7
+03/24/2025 10:11:53: Run = 101153
+03/24/2025 10:11:53: Operation = surf/volm
+03/24/2025 10:11:59: Processing loadings.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 0
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing solveroptions.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 0
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 1 meshcontrol added. Total selected 1
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 1 meshcontrol added. Total selected 2
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 1 meshcontrol added. Total selected 3
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 1 meshcontrol added. Total selected 4
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Deleting selected data.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 4 entities were deleted.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Surface Mesh Begin
+03/24/2025 10:11:59: Processing components.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 0
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Reorganizing the database.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 1 meshcontrol added. Total selected 1
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 1
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 0
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Reading mesh controls...
+03/24/2025 10:11:59: 1 model controls, 0 local controls, 0 feature controls and 0 refinement controls detected.
+03/24/2025 10:11:59: Prepare auto meshing...
+03/24/2025 10:11:59: Start auto meshing...
+03/24/2025 10:11:59: Start meshing 41 surfaces...
+03/24/2025 10:11:59: triangle mesh adaptive: initial setup...
+03/24/2025 10:11:59: triangle mesh adaptive: glue duplicate nodes...
+03/24/2025 10:11:59: triangle mesh adaptive: mesh size smoothing...
+03/24/2025 10:11:59: triangle mesh adaptive: DB updating...
+03/24/2025 10:11:59: triangle mesh adaptive: Complete
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Surface Mesh End
+03/24/2025 10:11:59: Processing sets.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing sets.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 0
+03/24/2025 10:11:59: Processing elements.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 53730 elements added. Total selected 53730
+03/24/2025 10:11:59: Processing elements.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Model checking started ...
+03/24/2025 10:11:59: processing: 100 percent left...
+03/24/2025 10:11:59: Checking shell intersection/proximity/sharp_angle/duplicate.
+03/24/2025 10:11:59: The mesh is OK for tetramesh.
+03/24/2025 10:11:59: 53730 elems: x=0 pairs, prx=0 @ 2e-06, angle=0 @ 0.5, dups=0 on 0
+03/24/2025 10:11:59: Surface Mesh Validated
+03/24/2025 10:11:59: Volume Mesh Begin
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing regions.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 51 regions added. Total selected 51
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: 2 meshcontrols added. Total selected 2
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 2
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: No change. Total selected 0
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: Processing meshcontrols.
+03/24/2025 10:11:59: Ready
+03/24/2025 10:11:59: MC warning: No seeds for fluid volumes selected, all are solids.
+03/24/2025 10:11:59: Warning: 1 mesh ctrls in effect, 1 ignored for no-selection or ill-defined.(activeOnly=0).
+03/24/2025 10:11:59: Mesh saved to 'C:\Users\child\AppData\Local\Temp/gfx_files_primaryModel_0_31476/cfd_mesh.hmg' in the work dir.
+03/24/2025 10:11:59: boundaries not selected
+03/24/2025 10:11:59: Volume Mesh Failed
