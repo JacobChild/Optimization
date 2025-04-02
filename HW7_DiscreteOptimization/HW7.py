@@ -78,6 +78,16 @@ def total_distance_ga(pts_idx_f, pointsf):
     distances = np.linalg.norm(np.diff(path_points, axis=0), axis=1)
     return np.sum(distances)
 
+def total_distance_pop_ga(pop_f, pointsf):
+    """
+    Calculate the total distance of all paths in the population. AI assisted for vectorized speedup
+    """
+    path_points = pointsf[pop_f]
+    first_points = path_points[:, 0, :] [:, np.newaxis, :] #Shape: (npaths, npoints,2)
+    closed_paths = np.concatenate((path_points, first_points), axis=1) #Shape: (npaths, npoints+1,2)
+    distances = np.linalg.norm(np.diff(closed_paths, axis=1), axis=2) #Shape: (npaths, npoints)
+    return np.sum(distances, axis=1) #Shape: (npaths,)
+
 # In this case the design variable/point is going to be an array of indexes that represent the order of the points, including wrapping back around to the first point. 
 # Principles of Genetic Algorithm:
 # 1. Initialization: Create a population where each individual is a random permutation of the indexes of the points.
@@ -92,4 +102,122 @@ def ga_init_pop(pop_size_f, n_points_f):
     Initialize the population. 
     """
     return np.array([np.random.permutation(n_points_f) for _ in range(pop_size_f)])
+
+def ga_selection(pop_f, distances_f, perc_parents_f = 0.5):
+    """
+    Select the best individuals to be parents for the next generation.
+    """
+    n_parents_f = int(len(pop_f) * perc_parents_f)
+    selected_indices = np.argsort(distances_f)[:n_parents_f]
+    return pop_f[selected_indices]
+
+# def ga_crossover(parents_f, perc_offspring_f = 0.5):
+#     """
+#     Create offspring by ordered crossover.
+#     """
+#     n_offspring_f = int(len(parents_f) * perc_offspring_f)
+#     offspring = np.empty((n_offspring_f, len(parents_f[0])), dtype=int) # Shape: (n_offspring, n_points)
+#     for i in range(n_offspring_f):
+#         parent1_idx = np.random.randint(len(parents_f))
+#         parent2_idx = np.random.randint(len(parents_f))
+#         parent1 = parents_f[parent1_idx]
+#         parent2 = parents_f[parent2_idx]
+        
+#         # Order crossover
+#         start, end = sorted(np.random.choice(len(parent1), 2, replace=False))
+#         offspring[i, start:end] = parent1[start:end]
+        
+#         # Fill in the rest from parent2
+#         fill_idx = np.setdiff1d(np.arange(len(parent1)), offspring[i, start:end])
+#         fill_values = [val for val in parent2 if val not in offspring[i]]
+#         offspring[i, fill_idx] = fill_values[:len(fill_idx)]
     
+#     return offspring
+def ga_crossover(parents_f, perc_offspring_f=0.5):
+    """
+    Create offspring by ordered crossover in a more efficient manner.
+    """
+    n_offspring_f = int(len(parents_f) * perc_offspring_f)
+    n_points = parents_f.shape[1]
+    
+    # Preallocate offspring array
+    offspring = np.empty((n_offspring_f, n_points), dtype=int)
+    
+    # Randomly select pairs of parents
+    parent_indices = np.random.randint(0, len(parents_f), size=(n_offspring_f, 2))
+    
+    # Generate random crossover points for all offspring
+    crossover_points = np.sort(np.random.randint(0, n_points, size=(n_offspring_f, 2)), axis=1)
+    
+    for i in range(n_offspring_f):
+        parent1 = parents_f[parent_indices[i, 0]]
+        parent2 = parents_f[parent_indices[i, 1]]
+        start, end = crossover_points[i]
+        
+        # Copy the segment from parent1
+        offspring[i, start:end] = parent1[start:end]
+        
+        # Fill the rest from parent2 in order, skipping duplicates
+        parent2_values = [val for val in parent2 if val not in parent1[start:end]]
+        fill_idx = np.concatenate((np.arange(0, start), np.arange(end, n_points)))
+        offspring[i, fill_idx] = parent2_values
+    
+    return offspring
+
+def mutation_ga(offspring_f, mutation_rate_f=0.1):
+    """
+    Randomly change the order of the points in the offspring.
+    """
+    for i in range(len(offspring_f)):
+        if np.random.rand() < mutation_rate_f:
+            idx1, idx2 = np.random.choice(len(offspring_f[i]), 2, replace=False)
+            offspring_f[i][idx1], offspring_f[i][idx2] = offspring_f[i][idx2], offspring_f[i][idx1]
+    return offspring_f
+
+def ga_replacement(pop_f, offspring_f, distances_f):
+    """
+    Replace the worst individuals in the population with the offspring.
+    """
+    combined_pop = np.vstack((pop_f, offspring_f))
+    combined_distances = np.concatenate((distances_f, total_distance_pop_ga(offspring_f, tsp_points)))
+    
+    # Select the best individuals to keep in the population
+    best_indices = np.argsort(combined_distances)[:len(pop_f)]
+    return combined_pop[best_indices]
+
+# def GA(): #TODO finish
+
+
+
+
+#%% Problem 3: Branch and Bound 
+# setup
+def prb3_func(xf):
+    x1, x2, x3, x4, x5 = xf
+    return -5.6*x1 -7.0*x2 -7.8*x3 - 4.0*x4 -2.9*x5
+
+def prb3_g1(xf):
+    x1, x2, x3, x4, x5 = xf
+    return -(0.8*x1 + 5.9*x2 + 3.8*x3 + 1.8*x4 + 0.8*x5) + 8.2
+def prb3_g2(xf):
+    x1, x2, x3, x4, x5 = xf
+    return -(3.5*x1 + 2.1*x2 + 7.8*x3 + 2.2*x4 + 7.9*x5) + 10.2
+def prb3_g3(xf):
+    x1, x2, x3, x4, x5 = xf
+    return -(3.8*x1 + 2.6*x3 + 1.6*x4) + 8.3
+
+constraints_dict = [{'type': 'ineq', 'fun': prb3_g1},
+                    {'type': 'ineq', 'fun': prb3_g2},
+                   {'type': 'ineq', 'fun': prb3_g3}]
+
+bounds = (0,1)
+x0 = np.array([0.5, 0.5, 0.5, 0.5, 0.5])
+
+
+
+# %% Problem 3: Branch and Bound
+# Solve
+res_b0 = minimize(prb3_func, x0, bounds=[bounds], constraints=constraints_dict, method='SLSQP')
+print("Initial (b0) solution:", res_b0)
+
+# %%
