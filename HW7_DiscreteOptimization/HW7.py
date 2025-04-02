@@ -67,9 +67,9 @@ past_points_greedy = greedy(tsp_points)
 total_distance_greedy = total_distance(past_points_greedy) #672.8249
 print("Greedy Algorithm Total Distance:", total_distance_greedy)
 greedy_plotter(tsp_points, past_points_greedy, total_distance_greedy)
-# %% Problem 1: TSP- (Branch and Bound Approach) Function setup
+# %% Problem 1: TSP- (Genetic Algorithm Approach) Function setup
 # Branch and Bound approach to solve the TSP
-def total_distance_bb(pts_idx_f, pointsf):
+def total_distance_ga(pts_idx_f, pointsf):
     """
     Calculate the total distance of the path given the indices of the points.
     """
@@ -78,13 +78,18 @@ def total_distance_bb(pts_idx_f, pointsf):
     distances = np.linalg.norm(np.diff(path_points, axis=0), axis=1)
     return np.sum(distances)
 
-# In this case the design variable/point is going to be an array of indexes that represent the order of the points, including wrapping back around to the first point. I will do the depth first approach. I will have similar functions to greedy, but adapted to run off of the indexes to tsp_points
-# I will also need a function to calculate the lower bound of the path. I will use the minimum spanning tree (MST) to calculate the lower bound. I will also need a function to check if the path is complete. I will also need a function to plot the path taken.
-#algorithm pseudocode from the book:
-# Let S be the set of indices of the points 
-# while branches remain, do: solve relaxed problem for xhat and fhat
-# if the relaxed problem is infeasible, then prune the branch and back up tree
-# else if xhat_i is included between {0,1} for all i in S, then fbest = min(fbest, fhat), prune this branch and back up tree
-#      else branch further 
-# end while
-# return fbest and xbest
+# In this case the design variable/point is going to be an array of indexes that represent the order of the points, including wrapping back around to the first point. 
+# Principles of Genetic Algorithm:
+# 1. Initialization: Create a population where each individual is a random permutation of the indexes of the points.
+# 2. Selection: Select the best individuals to be parents for the next generation. I will use tournament selection.
+# 3. Crossover: Create offspring by combining the parents. I will use order crossover.
+# 4. Mutation: Randomly change the order of the points in the offspring. I will use swap mutation.
+# 5. Replacement: Replace the worst individuals in the population with the offspring. This is built in elitism.
+# 6. Termination: Terminate the algorithm when a stopping criterion is met. I will use a maximum number of generations.
+
+def ga_init_pop(pop_size_f, n_points_f):
+    """
+    Initialize the population. 
+    """
+    return np.array([np.random.permutation(n_points_f) for _ in range(pop_size_f)])
+    
