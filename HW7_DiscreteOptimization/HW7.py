@@ -210,14 +210,92 @@ constraints_dict = [{'type': 'ineq', 'fun': prb3_g1},
                     {'type': 'ineq', 'fun': prb3_g2},
                    {'type': 'ineq', 'fun': prb3_g3}]
 
-bounds = (0,1)
 x0 = np.array([0.5, 0.5, 0.5, 0.5, 0.5])
 
 
 
 # %% Problem 3: Branch and Bound
 # Solve
-res_b0 = minimize(prb3_func, x0, bounds=[bounds], constraints=constraints_dict, method='SLSQP')
-print("Initial (b0) solution:", res_b0)
+bounds_b0 = np.array([[0,1], [0,1], [0,1], [0,1], [0,1]])
+res_b0 = minimize(prb3_func, x0, bounds=bounds_b0, constraints=constraints_dict, method='SLSQP')
+
+#b1_1, change x3 to = 0 
+bounds_b1_1 = np.array([[0,1], [0,1], [0,0], [0,1], [0,1]])
+res_b1_1 = minimize(prb3_func, x0, bounds=bounds_b1_1, constraints=constraints_dict, method='SLSQP')
+res_b1_1
+#b1_2, keep x3 = 0 and change x4 to = 1 
+bounds_b1_2 = np.array([[0,1], [0,1], [0,0], [1,1], [0,1]])
+res_b1_2 = minimize(prb3_func, x0, bounds=bounds_b1_2, constraints=constraints_dict, method='SLSQP')
+res_b1_2
+#b1_3, keep x3 = 0 and x4 = 1 and change x5 = 0
+bounds_b1_3 = np.array([[0,1], [0,1], [0,0], [1,1], [0,0]])
+res_b1_3 = minimize(prb3_func, x0, bounds=bounds_b1_3, constraints=constraints_dict, method='SLSQP')
+res_b1_3
+#b1_4, now only x1 unbounded and x2 = 0
+bounds_b1_4 = np.array([[0,1], [0,0], [0,0], [1,1], [0,0]])
+res_b1_4 = minimize(prb3_func, x0, bounds=bounds_b1_4, constraints=constraints_dict, method='SLSQP')
+res_b1_4
+# #b1_5, now all x's are bounded, x1 = 0
+bounds_b1_5 = np.array([[0,0], [0,0], [0,0], [1,1], [0,0]])
+res_b1_5 = minimize(prb3_func, x0, bounds=bounds_b1_5, constraints=constraints_dict, method='SLSQP')
+res_b1_5
+# #b1_6, now all x's are bounded, x1 = 1
+bounds_b1_6 = np.array([[1,1], [0,0], [0,0], [1,1], [0,0]])
+res_b1_6 = minimize(prb3_func, x0, bounds=bounds_b1_6, constraints=constraints_dict, method='SLSQP')
+res_b1_6
+#b1_7, step up and x1 is unbounded, x2 = 1
+bounds_b1_7 = np.array([[0,1], [1,1], [0,0], [1,1], [0,0]])
+res_b1_7 = minimize(prb3_func, x0, bounds=bounds_b1_7, constraints=constraints_dict, method='SLSQP')
+res_b1_7
+#b1_8 now x1 = 1
+bounds_b1_8 = np.array([[1,1], [1,1], [0,0], [1,1], [0,0]])
+res_b1_8 = minimize(prb3_func, x0, bounds=bounds_b1_8, constraints=constraints_dict, method='SLSQP')
+res_b1_8 #infeasible
+#b1_9 now x1 = 0
+bounds_b1_9 = np.array([[0,0], [1,1], [0,0], [1,1], [0,0]])
+res_b1_9 = minimize(prb3_func, x0, bounds=bounds_b1_9, constraints=constraints_dict, method='SLSQP')
+res_b1_9
+#b1_10 step up to x5, and now x5 = 1
+bounds_b1_10 = np.array([[0,1], [0,1], [0,0], [1,1], [1,1]])
+res_b1_10 = minimize(prb3_func, x0, bounds=bounds_b1_10, constraints=constraints_dict, method='SLSQP')
+res_b1_10
+
+# %% Problem 3: Branch and Bound, branch 2
+#b2_1, change x3 to = 1
+bounds_b2_1 = np.array([[0,1], [0,1], [1,1], [0,1], [0,1]])
+res_b2_1 = minimize(prb3_func, x0, bounds=bounds_b2_1, constraints=constraints_dict, method='SLSQP')
+res_b2_1
+#b2_2, keep x3 = 1 and change x2 to = 1
+bounds_b2_2 = np.array([[0,1], [1,1], [1,1], [0,1], [0,1]])
+res_b2_2 = minimize(prb3_func, x0, bounds=bounds_b2_2, constraints=constraints_dict, method='SLSQP')
+res_b2_2
+#b2_3, keep x3 = 1 now, x2 = 0
+bounds_b2_3 = np.array([[0,1], [0,0], [1,1], [0,1], [0,1]])
+res_b2_3 = minimize(prb3_func, x0, bounds=bounds_b2_3, constraints=constraints_dict, method='SLSQP')
+res_b2_3
+#b2_4, keep, now x5 = 0 
+bounds_b2_4 = np.array([[0,1], [0,0], [1,1], [0,1], [0,0]])
+res_b2_4 = minimize(prb3_func, x0, bounds=bounds_b2_4, constraints=constraints_dict, method='SLSQP')
+res_b2_4
+#b2_5 keep and set x1 = 0
+bounds_b2_5 = np.array([[0,0], [0,0], [1,1], [0,1], [0,0]])
+res_b2_5 = minimize(prb3_func, x0, bounds=bounds_b2_5, constraints=constraints_dict, method='SLSQP')
+res_b2_5
+#b2_6 keep, now x4 = 1
+bounds_b2_6 = np.array([[0,0], [0,0], [1,1], [1,1], [0,0]])
+res_b2_6 = minimize(prb3_func, x0, bounds=bounds_b2_6, constraints=constraints_dict, method='SLSQP')
+res_b2_6
+#b2_6 check x4 = 0
+bounds_b2_7 = np.array([[0,0], [0,0], [1,1], [0,0], [0,0]])
+res_b2_7 = minimize(prb3_func, x0, bounds=bounds_b2_7, constraints=constraints_dict, method='SLSQP')
+res_b2_7
+#b2_8 step up and x1 = 1
+bounds_b2_8 = np.array([[1,1], [0,0], [1,1], [0,1], [0,0]])
+res_b2_8 = minimize(prb3_func, x0, bounds=bounds_b2_8, constraints=constraints_dict, method='SLSQP')
+res_b2_8
+#b2_9 step up and x5 = 1
+bounds_b2_9 = np.array([[0,1], [0,0], [1,1], [0,1], [1,1]])
+res_b2_9 = minimize(prb3_func, x0, bounds=bounds_b2_9, constraints=constraints_dict, method='SLSQP')
+res_b2_9
 
 # %%
