@@ -4,7 +4,7 @@
 #%% Import needed packages
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize, fsolve
+from scipy.optimize import minimize
 
 # %% Problem 1: Traveling Salesman Problem (TSP)- (setup)
 # TSP setup, 49 points in an area 100 x 100 square, randomly generated
@@ -48,28 +48,42 @@ def total_distance(past_pointsf):
     distances = np.linalg.norm(np.diff(past_pointsf, axis=0), axis=1)
     return np.sum(distances)
 
-def greedy_plotter(pointsf, past_pointsf, total_distancef):
+def greedy_plotter(pointsf, past_pointsf, total_distancef, title = 'Greedy'):
     """
     Plot the path taken by the greedy algorithm.
     """
+    #wrap the points around to close the loop
+    past_pointsf = np.vstack((past_pointsf, past_pointsf[0]))  # Close the loop
     plt.figure()
     plt.plot(pointsf[:, 0], pointsf[:, 1], 'ro', label='Points')
     plt.plot(past_pointsf[:, 0], past_pointsf[:, 1], 'b-', label='Path')
     plt.plot(past_pointsf[0, 0], past_pointsf[0, 1], 'go', label='Start Point')
-    plt.title('Greedy TSP Path, Total Distance: {:.2f}'.format(total_distancef))
+    plt.title(f'{title} TSP Path, Total Distance: {total_distancef:.2f}')
     plt.xlabel('X Coordinate')
     plt.ylabel('Y Coordinate')
     plt.legend()
     plt.grid()
     plt.show()
+    
 # %% Problem 1: TSP- (Greedy Algorithm Approach) Solve
 past_points_greedy = greedy(tsp_points)
 total_distance_greedy = total_distance(past_points_greedy) #672.8249
 print("Greedy Algorithm Total Distance:", total_distance_greedy)
 greedy_plotter(tsp_points, past_points_greedy, total_distance_greedy)
-# %% Problem 1: TSP- (Genetic Algorithm Approach) Function setup
-# Branch and Bound approach to solve the TSP
-def total_distance_ga(pts_idx_f, pointsf):
+
+#%% Problem 1: Traveling Salesman Problem (TSP)- 2-Opt Algorithm Approach
+# Functions Setup
+def two_opt_swap(routeff, index1f, index2f):
+    """
+    Perform a 2-opt swap on the route between two indices.
+    """
+    new_route = np.zeros_like(routeff)
+    new_route[:index1f] = routeff[:index1f] #keep the first segment
+    new_route[index1f:index2f + 1] = np.flip(routeff[index1f:index2f+1])  # Reverse the segment #routeff[index2f:index1f - 1:-1]  # Reverse the segment
+    new_route[index2f + 1:] = routeff[index2f + 1:] #keep the last segment
+    return new_route
+
+def total_distance_2opt(pts_idx_f, pointsf):
     """
     Calculate the total distance of the path given the indices of the points.
     """
@@ -78,116 +92,47 @@ def total_distance_ga(pts_idx_f, pointsf):
     distances = np.linalg.norm(np.diff(path_points, axis=0), axis=1)
     return np.sum(distances)
 
-def total_distance_pop_ga(pop_f, pointsf):
-    """
-    Calculate the total distance of all paths in the population. AI assisted for vectorized speedup
-    """
-    path_points = pointsf[pop_f]
-    first_points = path_points[:, 0, :] [:, np.newaxis, :] #Shape: (npaths, npoints,2)
-    closed_paths = np.concatenate((path_points, first_points), axis=1) #Shape: (npaths, npoints+1,2)
-    distances = np.linalg.norm(np.diff(closed_paths, axis=1), axis=2) #Shape: (npaths, npoints)
-    return np.sum(distances, axis=1) #Shape: (npaths,)
-
-# In this case the design variable/point is going to be an array of indexes that represent the order of the points, including wrapping back around to the first point. 
-# Principles of Genetic Algorithm:
-# 1. Initialization: Create a population where each individual is a random permutation of the indexes of the points.
-# 2. Selection: Select the best individuals to be parents for the next generation. I will use tournament selection.
-# 3. Crossover: Create offspring by combining the parents. I will use order crossover.
-# 4. Mutation: Randomly change the order of the points in the offspring. I will use swap mutation.
-# 5. Replacement: Replace the worst individuals in the population with the offspring. This is built in elitism.
-# 6. Termination: Terminate the algorithm when a stopping criterion is met. I will use a maximum number of generations.
-
-def ga_init_pop(pop_size_f, n_points_f):
-    """
-    Initialize the population. 
-    """
-    return np.array([np.random.permutation(n_points_f) for _ in range(pop_size_f)])
-
-def ga_selection(pop_f, distances_f, perc_parents_f = 0.5):
-    """
-    Select the best individuals to be parents for the next generation.
-    """
-    n_parents_f = int(len(pop_f) * perc_parents_f)
-    selected_indices = np.argsort(distances_f)[:n_parents_f]
-    return pop_f[selected_indices]
-
-# def ga_crossover(parents_f, perc_offspring_f = 0.5):
-#     """
-#     Create offspring by ordered crossover.
-#     """
-#     n_offspring_f = int(len(parents_f) * perc_offspring_f)
-#     offspring = np.empty((n_offspring_f, len(parents_f[0])), dtype=int) # Shape: (n_offspring, n_points)
-#     for i in range(n_offspring_f):
-#         parent1_idx = np.random.randint(len(parents_f))
-#         parent2_idx = np.random.randint(len(parents_f))
-#         parent1 = parents_f[parent1_idx]
-#         parent2 = parents_f[parent2_idx]
+def two_opt(routef, max_iterationsf=1000):
+    current_route = routef.copy()
+    best_distance = total_distance_2opt(current_route, tsp_points)
+    tracker = []
+    tracker.append(best_distance)
+    iteration = 0
+    while iteration < max_iterationsf:
+        improved = False
+        for i in range(len(current_route) - 2):
+            for j in range(i + 1, len(current_route)-1):
+                new_route = two_opt_swap(current_route, i, j)
+                new_distance = total_distance_2opt(new_route, tsp_points)
+                tracker.append(new_distance)
+                if new_distance < best_distance:
+                    best_distance = new_distance
+                    current_route = new_route.copy()
+                    improved = True
+        #update every 100 iterations
         
-#         # Order crossover
-#         start, end = sorted(np.random.choice(len(parent1), 2, replace=False))
-#         offspring[i, start:end] = parent1[start:end]
-        
-#         # Fill in the rest from parent2
-#         fill_idx = np.setdiff1d(np.arange(len(parent1)), offspring[i, start:end])
-#         fill_values = [val for val in parent2 if val not in offspring[i]]
-#         offspring[i, fill_idx] = fill_values[:len(fill_idx)]
-    
-#     return offspring
-def ga_crossover(parents_f, perc_offspring_f=0.5):
-    """
-    Create offspring by ordered crossover in a more efficient manner.
-    """
-    n_offspring_f = int(len(parents_f) * perc_offspring_f)
-    n_points = parents_f.shape[1]
-    
-    # Preallocate offspring array
-    offspring = np.empty((n_offspring_f, n_points), dtype=int)
-    
-    # Randomly select pairs of parents
-    parent_indices = np.random.randint(0, len(parents_f), size=(n_offspring_f, 2))
-    
-    # Generate random crossover points for all offspring
-    crossover_points = np.sort(np.random.randint(0, n_points, size=(n_offspring_f, 2)), axis=1)
-    
-    for i in range(n_offspring_f):
-        parent1 = parents_f[parent_indices[i, 0]]
-        parent2 = parents_f[parent_indices[i, 1]]
-        start, end = crossover_points[i]
-        
-        # Copy the segment from parent1
-        offspring[i, start:end] = parent1[start:end]
-        
-        # Fill the rest from parent2 in order, skipping duplicates
-        parent2_values = [val for val in parent2 if val not in parent1[start:end]]
-        fill_idx = np.concatenate((np.arange(0, start), np.arange(end, n_points)))
-        offspring[i, fill_idx] = parent2_values
-    
-    return offspring
-
-def mutation_ga(offspring_f, mutation_rate_f=0.1):
-    """
-    Randomly change the order of the points in the offspring.
-    """
-    for i in range(len(offspring_f)):
-        if np.random.rand() < mutation_rate_f:
-            idx1, idx2 = np.random.choice(len(offspring_f[i]), 2, replace=False)
-            offspring_f[i][idx1], offspring_f[i][idx2] = offspring_f[i][idx2], offspring_f[i][idx1]
-    return offspring_f
-
-def ga_replacement(pop_f, offspring_f, distances_f):
-    """
-    Replace the worst individuals in the population with the offspring.
-    """
-    combined_pop = np.vstack((pop_f, offspring_f))
-    combined_distances = np.concatenate((distances_f, total_distance_pop_ga(offspring_f, tsp_points)))
-    
-    # Select the best individuals to keep in the population
-    best_indices = np.argsort(combined_distances)[:len(pop_f)]
-    return combined_pop[best_indices]
-
-# def GA(): #TODO finish
+        if iteration % 100 == 0:
+            print(f"Iteration {iteration}: Best Distance = {best_distance:.2f}")
+            greedy_plotter(tsp_points, tsp_points[current_route], best_distance, title = '2-Opt')
+        if not improved:
+            print("No improvement found, stopping. Iterations:", iteration)
+            break
+        iteration += 1
+    # Final plot
+    greedy_plotter(tsp_points, tsp_points[current_route], best_distance, title = '2-Opt Final')
+    return current_route, best_distance, tracker
 
 
+#%% Problem 1: Traveling Salesman Problem (TSP)- 2-Opt Algorithm Approach Solve
+two_opt_init = np.random.permutation(len(tsp_points)) #randomly permute the points to start with a different route
+best_route_2opt, best_distance_2opt, tracker = two_opt(two_opt_init, max_iterationsf=10)
+#convergence plot
+plt.figure()
+plt.semilogy(tracker, 'r-')
+plt.title('Convergence of 2-Opt Algorithm')
+plt.xlabel('Inner Loop Iteration')
+plt.ylabel('Total Distance')
+plt.show()
 
 
 #%% Problem 3: Branch and Bound 
@@ -259,7 +204,34 @@ res_b1_9
 bounds_b1_10 = np.array([[0,1], [0,1], [0,0], [1,1], [1,1]])
 res_b1_10 = minimize(prb3_func, x0, bounds=bounds_b1_10, constraints=constraints_dict, method='SLSQP')
 res_b1_10
-
+#b1_11 step up to x4, and now x4 = 0
+bounds_b1_11 = np.array([[0,1], [0,1], [0,0], [0,0], [0,1]])
+res_b1_11 = minimize(prb3_func, x0, bounds=bounds_b1_11, constraints=constraints_dict, method='SLSQP')
+res_b1_11
+#b1_12 keep and fix x5 = 1
+bounds_b1_12 = np.array([[0,1], [0,1], [0,0], [0,0], [1,1]])
+res_b1_12 = minimize(prb3_func, x0, bounds=bounds_b1_12, constraints=constraints_dict, method='SLSQP')
+res_b1_12
+#b1_13 prune and switch x5 = 0 
+bounds_b1_13 = np.array([[0,1], [0,1], [0,0], [0,0], [0,0]])
+res_b1_13 = minimize(prb3_func, x0, bounds=bounds_b1_13, constraints=constraints_dict, method='SLSQP')
+res_b1_13
+#b1_14, keep and x2 = 0
+bounds_b1_14 = np.array([[0,1], [0,0], [0,0], [0,0], [0,0]])
+res_b1_14 = minimize(prb3_func, x0, bounds=bounds_b1_14, constraints=constraints_dict, method='SLSQP')
+res_b1_14
+#b1_15, reset x2 = 1 
+bounds_b1_15 = np.array([[0,1], [1,1], [0,0], [0,0], [0,0]])
+res_b1_15 = minimize(prb3_func, x0, bounds=bounds_b1_15, constraints=constraints_dict, method='SLSQP')
+res_b1_15
+#b1_16 keep and check x1 = 0
+bounds_b1_16 = np.array([[0,0], [1,1], [0,0], [0,0], [0,0]])
+res_b1_16 = minimize(prb3_func, x0, bounds=bounds_b1_16, constraints=constraints_dict, method='SLSQP')
+res_b1_16
+#b1_17 switch x1 = 1
+bounds_b1_17 = np.array([[1,1], [1,1], [0,0], [0,0], [0,0]])
+res_b1_17 = minimize(prb3_func, x0, bounds=bounds_b1_17, constraints=constraints_dict, method='SLSQP')
+res_b1_17
 # %% Problem 3: Branch and Bound, branch 2
 #b2_1, change x3 to = 1
 bounds_b2_1 = np.array([[0,1], [0,1], [1,1], [0,1], [0,1]])
