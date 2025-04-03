@@ -100,7 +100,7 @@ def two_opt(routef, max_iterationsf=1000):
     iteration = 0
     while iteration < max_iterationsf:
         improved = False
-        for i in range(len(current_route) - 2):
+        for i in range(1, len(current_route) - 2):
             for j in range(i + 1, len(current_route)-1):
                 new_route = two_opt_swap(current_route, i, j)
                 new_distance = total_distance_2opt(new_route, tsp_points)
@@ -125,6 +125,12 @@ def two_opt(routef, max_iterationsf=1000):
 
 #%% Problem 1: Traveling Salesman Problem (TSP)- 2-Opt Algorithm Approach Solve
 two_opt_init = np.random.permutation(len(tsp_points)) #randomly permute the points to start with a different route
+#find the 0 index, which is the start point, and move it to the front of the array
+#roll the array to move the 0 index to the front
+zero_idx = np.where(two_opt_init == 0)[0][0]
+two_opt_init[zero_idx] = two_opt_init[0]
+two_opt_init[0] = 0
+
 best_route_2opt, best_distance_2opt, tracker = two_opt(two_opt_init, max_iterationsf=10)
 #convergence plot
 plt.figure()
