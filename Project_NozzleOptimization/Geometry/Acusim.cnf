@@ -1,0 +1,16 @@
+# date                         = Thu Apr  3 14:41:01 2025
+problem                        = run1
+problem_directory              = C:/Users/child/Documents/Projects/Optimization/Project_NozzleOptimization/Geometry
+working_directory              = ACUSIM.DIR
+process_modules                = all
+input_file                     = _auto
+message_passing_type           = impi
+num_processors                 = 8
+# date                         = Thu Apr  3 15:36:32 2025
+problem                        = run2_fixednozzle
+problem_directory              = C:/Users/child/Documents/Projects/Optimization/Project_NozzleOptimization/Geometry
+working_directory              = ACUSIM.DIR
+process_modules                = all
+input_file                     = _auto
+message_passing_type           = impi
+num_processors                 = 8

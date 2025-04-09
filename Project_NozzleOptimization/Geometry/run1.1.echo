@@ -1,0 +1,803 @@
+# DATE: Thu Apr  3 14:41:02 2025
+# VERSION: 2025
+#1# INCLUDE "run1.inp"
+INCLUDE {
+    file = "MESH.DIR/run1_meshsets.inc" ;
+}
+#2# INCLUDE "MESH.DIR/run1_meshsets.inc"
+COORDINATE {
+    coordinates = Read( "MESH.DIR/run1.crd.B" ) ;
+}
+VOLUME_SET( "run1.SolidBody_2_10.tet4" ) {
+    shape = four_node_tet ;
+    elements = Read( "MESH.DIR/run1.SolidBody_2_10.tet4.cnn.B" ) ;
+}
+VOLUME_SET( "run1.SolidBody_2_10.wedge6" ) {
+    shape = six_node_wedge ;
+    elements = Read( "MESH.DIR/run1.SolidBody_2_10.wedge6.cnn.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_1.tria3.SolidBody_2_10.tet4" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.tet4" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_1.tria3.SolidBody_2_10.tet4.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_2.tria3.SolidBody_2_10.tet4" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.tet4" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_2.tria3.SolidBody_2_10.tet4.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_3.tria3.SolidBody_2_10.tet4" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.tet4" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_3.tria3.SolidBody_2_10.tet4.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_4.tria3.SolidBody_2_10.tet4" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.tet4" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_4.tria3.SolidBody_2_10.tet4.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_4.quad4.SolidBody_2_10.wedge6" ) {
+    shape = four_node_quad ;
+    volume_set = "run1.SolidBody_2_10.wedge6" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_4.quad4.SolidBody_2_10.wedge6.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_5.tria3.SolidBody_2_10.tet4" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.tet4" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_5.tria3.SolidBody_2_10.tet4.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_6.tria3.SolidBody_2_10.wedge6" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.wedge6" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_6.tria3.SolidBody_2_10.wedge6.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_7.tria3.SolidBody_2_10.wedge6" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.wedge6" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_7.tria3.SolidBody_2_10.wedge6.ebc.B" ) ;
+}
+SURFACE_SET( "run1.SurfaceSet_8.tria3.SolidBody_2_10.wedge6" ) {
+    shape = three_node_triangle ;
+    volume_set = "run1.SolidBody_2_10.wedge6" ;
+    surfaces = Read( "MESH.DIR/run1.SurfaceSet_8.tria3.SolidBody_2_10.wedge6.ebc.B" ) ;
+}
+ANALYSIS {
+    title = "run1" ;
+    type = static ;
+}
+#2# END INCLUDE "MESH.DIR/run1_meshsets.inc"
+EQUATION {
+    flow = compressible_navier_stokes ;
+    absolute_pressure_offset = 101325 ;
+    porous_media_velocity_type = superficial ;
+    temperature = advective_diffusive ;
+    turbulence = spalart_allmaras ;
+    mesh = eulerian ;
+}
+AUTO_SOLUTION_STRATEGY {
+    max_time_steps = 100 ;
+    initial_time_increment = 10000000000 ;
+    convergence_tolerance = 0.001 ;
+    num_krylov_vectors = 10 ;
+    flow = on ;
+    temperature = off ;
+    turbulence = on ;
+    relaxation_factor = 0.4 ;
+}
+#2# INCLUDE "run1.ss.inc"
+TIME_SEQUENCE {
+    initial_time = 0 ;
+    final_time = 0 ;
+    min_time_steps = 1 ;
+    max_time_steps = 100 ;
+    initial_case_time_steps = 0 ;
+    min_cases = 1 ;
+    max_cases = 1 ;
+    convergence_tolerance = 0.001 ;
+    optimization_convergence_tolerance = 0.0001 ;
+    termination_delay = 0 ;
+    lhs_update_initial_times = 1 ;
+    lhs_update_frequency = 1 ;
+    min_stagger_iterations = 1 ;
+    max_stagger_iterations = 1 ;
+    stagger_convergence_tolerance = 1 ;
+    stagger_lhs_update_frequency = 1 ;
+    allow_stagger_reordering = off ;
+    topology_stagger_reordering = on ;
+    staggers = { "compressible_flow",
+                 "turbulence" } ;
+}
+STAGGER( "compressible_flow" ) {
+    equation = compressible_flow ;
+    discrete_ordinate_direction = 0 ;
+    min_stagger_iterations = 1 ;
+    max_stagger_iterations = 1 ;
+    convergence_tolerance = 0.1 ;
+    lhs_update_frequency = 1 ;
+    linear_solver = gmres ;
+    min_linear_solver_iterations = 10 ;
+    max_linear_solver_iterations = 2000 ;
+    num_krylov_vectors = 10 ;
+    linear_solver_tolerance = 0.01 ;
+    pressure_projection_tolerance = 0.01 ;
+    projection = on ;
+    pressure_projection = off ;
+    pressure_algebraic_multigrid = off ;
+}
+STAGGER( "turbulence" ) {
+    equation = turbulence ;
+    discrete_ordinate_direction = 0 ;
+    min_stagger_iterations = 1 ;
+    max_stagger_iterations = 1 ;
+    convergence_tolerance = 0.1 ;
+    lhs_update_frequency = 1 ;
+    linear_solver = gmres ;
+    min_linear_solver_iterations = 10 ;
+    max_linear_solver_iterations = 1000 ;
+    num_krylov_vectors = 50 ;
+    linear_solver_tolerance = 0.01 ;
+    projection = on ;
+}
+TIME_INCREMENT {
+    initial_time_increment = 10000000000 ;
+    auto_time_increment = off ;
+    local_time_increment = off ;
+    min_time_increment = 0 ;
+    max_time_increment = 0 ;
+    cfl_control = off ;
+    cfl_number = 1000 ;
+    min_cfl_number = 0 ;
+    initial_cfl_number = 1 ;
+    time_increment_decrease_factor = 0.25 ;
+    time_increment_increase_factor = 1.25 ;
+    time_increment_increase_delay = 4 ;
+    min_time_increment_ratio = 0.1 ;
+    multiplier_function = "none" ;
+}
+TIME_INTEGRATION {
+    predictor = same_v ;
+    time_integration_order = first ;
+    high_frequency_damping_factor = 1 ;
+    pressure_damping_type = max ;
+    lumped_mass_factor = 1 ;
+    initialize_acceleration = off ;
+}
+LINEAR_SOLVER_PARAMETERS {
+    lhs_storage = reduced_memory_sparse ;
+    min_num_iteration_ratio = 0.5 ;
+    pressure_precedence_factor = 1 ;
+    num_pressure_projection_vectors = 11 ;
+    num_velocity_projection_vectors = 5 ;
+    num_flow_projection_vectors = 5 ;
+    num_viscoelastic_stress_projection_vectors = 5 ;
+    num_temperature_projection_vectors = 11 ;
+    num_radiation_projection_vectors = 10 ;
+    num_temperature_flow_projection_vectors = 4 ;
+    num_species_projection_vectors = 10 ;
+    num_field_projection_vectors = 10 ;
+    num_field_velocity_projection_vectors = 5 ;
+    num_turbulence_projection_vectors = 10 ;
+    num_transition_projection_vectors = 10 ;
+    num_mesh_displacement_projection_vectors = 10 ;
+    num_topology_pressure_projection_vectors = 10 ;
+    num_topology_velocity_projection_vectors = 5 ;
+    num_topology_flow_projection_vectors = 5 ;
+    pressure_lhs_inverse_order = 5 ;
+    velocity_lhs_inverse_order = 5 ;
+    flow_lhs_inverse_order = 5 ;
+    temperature_lhs_inverse_order = 6 ;
+    topology_pressure_lhs_inverse_order = 5 ;
+    topology_velocity_lhs_inverse_order = 5 ;
+    topology_flow_lhs_inverse_order = 5 ;
+    pressure_regularization_factor = 1 ;
+    velocity_regularization_factor = 0.5 ;
+    flow_regularization_factor = 3.669296667619248e-05 ;
+    viscoelastic_stress_regularization_factor = 3.669296667619248e-06 ;
+    temperature_regularization_factor = 3.669296667619248e-06 ;
+    temperature_flow_regularization_factor = 3.669296667619248e-05 ;
+    species_regularization_factor = 0 ;
+    field_regularization_factor = 0 ;
+    field_velocity_regularization_factor = 3.669296667619248e-05 ;
+    turbulence_regularization_factor = 0 ;
+    transition_regularization_factor = 0 ;
+    mesh_displacement_regularization_factor = 0 ;
+    topology_pres_regularization_factor = 1 ;
+    topology_velocity_regularization_factor = 1 ;
+    topology_flow_regularization_factor = 1 ;
+    electric_potential_regularization_factor = 3.669296667619248e-06 ;
+    pressure_update_factor = 1 ;
+    velocity_update_factor = 0.605 ;
+    viscoelastic_stress_update_factor = 1 ;
+    temperature_update_factor = 0.8999999999999999 ;
+    species_update_factor = 1 ;
+    field_update_factor = 1 ;
+    field_velocity_update_factor = 0.605 ;
+    turbulence_update_factor = 1 ;
+    transition_update_factor = 1 ;
+    mesh_displacement_update_factor = 1 ;
+    radiation_update_factor = 1 ;
+    topology_pressure_update_factor = 1 ;
+    topology_velocity_update_factor = 1 ;
+    electric_potential_update_factor = 0.8999999999999999 ;
+    max_pressure_update = 0 ;
+    max_velocity_update = 0 ;
+    max_viscoelastic_stress_update = 0 ;
+    max_temperature_update = 0 ;
+    max_species_update = 0 ;
+    max_field_update = 0 ;
+    max_turbulence_update = 0 ;
+    max_transition_update = 0 ;
+    max_mesh_displacement_update = 0 ;
+    max_radiation_update = 0 ;
+    max_reverse_update_factor = 0 ;
+}
+CONVERGENCE_CHECK_PARAMETERS {
+    pressure_residual_check = standard ;
+    pressure_solution_increment_check = looser_by_10 ;
+    velocity_residual_check = standard ;
+    velocity_solution_increment_check = looser_by_10 ;
+    viscoelastic_stress_residual_check = looser_by_10 ;
+    viscoelastic_stress_solution_increment_check = looser_by_10 ;
+    temperature_residual_check = standard ;
+    temperature_solution_increment_check = looser_by_10 ;
+    radiation_residual_check = standard ;
+    radiation_solution_increment_check = looser_by_10 ;
+    species_residual_check = standard ;
+    species_solution_increment_check = looser_by_10 ;
+    field_residual_check = standard ;
+    field_solution_increment_check = looser_by_10 ;
+    phasefield_residual_check = standard ;
+    phasefield_solution_increment_check = looser_by_10 ;
+    levelset_residual_check = looser_by_10 ;
+    levelset_solution_increment_check = looser_by_100 ;
+    redistancing_residual_check = looser_by_100 ;
+    redistancing_solution_increment_check = looser_by_100 ;
+    turbulence_residual_check = looser_by_10 ;
+    turbulence_solution_increment_check = looser_by_100 ;
+    transition_residual_check = looser_by_100 ;
+    transition_solution_increment_check = looser_by_1000 ;
+    mesh_displacement_residual_check = looser_by_10 ;
+    mesh_displacement_solution_increment_check = looser_by_100 ;
+    topology_pressure_residual_check = standard ;
+    topology_pressure_solution_increment_check = looser_by_10 ;
+    topology_velocity_residual_check = standard ;
+    topology_velocity_solution_increment_check = looser_by_10 ;
+}
+ALGEBRAIC_MULTIGRID_PARAMETERS {
+    pressure_standard_interpolation = on ;
+    pressure_truncated_interpolation = on ;
+    pressure_negative_coupling_tolerance = 0.6 ;
+    pressure_positive_coupling_tolerance = 1 ;
+    pressure_truncation_tolerance = 0.1 ;
+    max_pressure_final_matrix = 100 ;
+    pressure_eigenvalue_tolerance = 0.01 ;
+    max_pressure_eigenvalue_iterations = 20 ;
+    pressure_smoothing_order = 2 ;
+    pressure_chebyshev_max_min_ratio = 10 ;
+    pressure_jacobi_relaxation_factor = 0.25 ;
+    pressure_smoothing_type = chebyshev ;
+    pressure_positive_negative_separate = off ;
+    pressure_givens_scaling = on ;
+    pressure_setup_tolerance = 0 ;
+    velocity_standard_interpolation = on ;
+    velocity_truncated_interpolation = on ;
+    velocity_negative_coupling_tolerance = 0.5 ;
+    velocity_positive_coupling_tolerance = 1 ;
+    velocity_truncation_tolerance = 0.1 ;
+    max_velocity_final_matrix = 100 ;
+    velocity_num_krylov_vectors = 30 ;
+    velocity_smoothing_order = 2 ;
+    velocity_chebyshev_max_min_ratio = 10 ;
+    velocity_jacobi_relaxation_factor = 0.25 ;
+    velocity_smoothing_type = chebyshev ;
+    velocity_positive_negative_separate = on ;
+    velocity_givens_scaling = off ;
+    velocity_setup_tolerance = 0 ;
+    flow_standard_interpolation = off ;
+    flow_truncated_interpolation = on ;
+    flow_negative_coupling_tolerance = 0.5 ;
+    flow_positive_coupling_tolerance = 1 ;
+    flow_truncation_tolerance = 0.1 ;
+    max_flow_final_matrix = 100 ;
+    flow_num_krylov_vectors = 30 ;
+    flow_smoothing_order = 2 ;
+    flow_chebyshev_max_min_ratio = 10 ;
+    flow_jacobi_relaxation_factor = 0.2 ;
+    flow_smoothing_type = jacobi ;
+    flow_positive_negative_separate = on ;
+    flow_givens_scaling = off ;
+    flow_setup_tolerance = 0 ;
+    temperature_standard_interpolation = on ;
+    temperature_truncated_interpolation = on ;
+    temperature_negative_coupling_tolerance = 0.5 ;
+    temperature_positive_coupling_tolerance = 1 ;
+    temperature_truncation_tolerance = 0.1 ;
+    max_temperature_final_matrix = 100 ;
+    temperature_num_krylov_vectors = 30 ;
+    temperature_smoothing_order = 2 ;
+    temperature_chebyshev_max_min_ratio = 10 ;
+    temperature_jacobi_relaxation_factor = 0.25 ;
+    temperature_smoothing_type = chebyshev ;
+    temperature_positive_negative_separate = on ;
+    temperature_givens_scaling = off ;
+    temperature_setup_tolerance = 0 ;
+    species_standard_interpolation = on ;
+    species_truncated_interpolation = on ;
+    species_negative_coupling_tolerance = 0.5 ;
+    species_positive_coupling_tolerance = 1 ;
+    species_truncation_tolerance = 0.1 ;
+    max_species_final_matrix = 100 ;
+    species_num_krylov_vectors = 30 ;
+    species_smoothing_order = 2 ;
+    species_chebyshev_max_min_ratio = 10 ;
+    species_jacobi_relaxation_factor = 0.25 ;
+    species_smoothing_type = chebyshev ;
+    species_positive_negative_separate = on ;
+    species_givens_scaling = off ;
+    species_setup_tolerance = 0 ;
+    turbulence_standard_interpolation = on ;
+    turbulence_truncated_interpolation = on ;
+    turbulence_negative_coupling_tolerance = 0.5 ;
+    turbulence_positive_coupling_tolerance = 1 ;
+    turbulence_truncation_tolerance = 0.1 ;
+    max_turbulence_final_matrix = 100 ;
+    turbulence_num_krylov_vectors = 30 ;
+    turbulence_smoothing_order = 3 ;
+    turbulence_chebyshev_max_min_ratio = 10 ;
+    turbulence_jacobi_relaxation_factor = 0.25 ;
+    turbulence_smoothing_type = chebyshev ;
+    turbulence_positive_negative_separate = on ;
+    turbulence_givens_scaling = off ;
+    turbulence_setup_tolerance = 0 ;
+    transition_standard_interpolation = on ;
+    transition_truncated_interpolation = on ;
+    transition_negative_coupling_tolerance = 0.5 ;
+    transition_positive_coupling_tolerance = 1 ;
+    transition_truncation_tolerance = 0.1 ;
+    max_transition_final_matrix = 100 ;
+    transition_num_krylov_vectors = 30 ;
+    transition_smoothing_order = 3 ;
+    transition_chebyshev_max_min_ratio = 10 ;
+    transition_jacobi_relaxation_factor = 0.25 ;
+    transition_smoothing_type = chebyshev ;
+    transition_positive_negative_separate = on ;
+    transition_givens_scaling = off ;
+    transition_setup_tolerance = 0 ;
+    mesh_standard_interpolation = on ;
+    mesh_truncated_interpolation = on ;
+    mesh_negative_coupling_tolerance = 0.5 ;
+    mesh_positive_coupling_tolerance = 1 ;
+    mesh_truncation_tolerance = 0.1 ;
+    max_mesh_final_matrix = 100 ;
+    mesh_eigenvalue_tolerance = 0.01 ;
+    max_mesh_eigenvalue_iterations = 20 ;
+    mesh_smoothing_order = 2 ;
+    mesh_chebyshev_max_min_ratio = 10 ;
+    mesh_jacobi_relaxation_factor = 0.25 ;
+    mesh_smoothing_type = chebyshev ;
+    mesh_positive_negative_separate = on ;
+    mesh_givens_scaling = off ;
+    mesh_setup_tolerance = 0 ;
+    viscoelastic_standard_interpolation = on ;
+    viscoelastic_truncated_interpolation = on ;
+    viscoelastic_negative_coupling_tolerance = 0.5 ;
+    viscoelastic_positive_coupling_tolerance = 0.3 ;
+    viscoelastic_truncation_tolerance = 0.1 ;
+    max_viscoelastic_final_matrix = 100 ;
+    viscoelastic_num_krylov_vectors = 30 ;
+    viscoelastic_smoothing_order = 2 ;
+    viscoelastic_chebyshev_max_min_ratio = 10 ;
+    viscoelastic_jacobi_relaxation_factor = 0.25 ;
+    viscoelastic_smoothing_type = jacobi ;
+    viscoelastic_positive_negative_separate = on ;
+    viscoelastic_givens_scaling = off ;
+    viscoelastic_setup_tolerance = 0 ;
+}
+DENSITY_MODEL( "Air-Ideal Gas" ) {
+    type = ideal_gas ;
+    density = 1.225 ;
+    expansivity_type = constant ;
+    expansivity = 0.003661 ;
+    reference_temperature = 273.14 ;
+    reference_pressure = 0 ;
+    specific_heat_ratio = 1.4 ;
+    gas_constant = 287.058 ;
+    isothermal_compressibility = 0 ;
+    curve_fit_variable = x_coordinate ;
+}
+#2# END INCLUDE "run1.ss.inc"
+CONDUCTIVITY_MODEL( "Air-Ideal Gas" ) {
+    type = constant ;
+    conductivity = 0.02521 ;
+    prandtl_number = 0.71 ;
+    curve_fit_variable = x_coordinate ;
+    anisotropic_curve_fit_variable = x_coordinate ;
+    turbulent_prandtl_number = 0.91 ;
+}
+SPECIFIC_HEAT_MODEL( "Air-Ideal Gas" ) {
+    type = constant ;
+    specific_heat = 1005 ;
+    curve_fit_variable = temperature ;
+    piecewise_polynomial_variable = temperature ;
+    latent_heat_type = none ;
+    latent_heat = 0 ;
+    latent_heat_temperature = 0 ;
+    latent_heat_temperature_interval = 0 ;
+}
+VISCOSITY_MODEL( "Air-Ideal Gas" ) {
+    type = constant ;
+    viscosity = 1.781e-05 ;
+    power_law_viscosity = 0 ;
+    power_law_time_constant = 0 ;
+    power_law_index = 1 ;
+    power_law_lower_strain_rate = 0 ;
+    bingham_viscosity = 1 ;
+    bingham_yield_stress = 0 ;
+    bingham_stress_growth_exponent = 500 ;
+    bingham_time_constant = 1 ;
+    bingham_index = 1 ;
+    bingham_infinite_shear_viscosity = 0 ;
+    carreau_zero_shear_viscosity = 0 ;
+    carreau_infinite_shear_viscosity = 0 ;
+    carreau_time_constant = 0 ;
+    carreau_index = 1 ;
+    carreau_transition_index = 2 ;
+    curve_fit_variable = x_coordinate ;
+}
+MATERIAL_MODEL( "Air-Ideal Gas" ) {
+    type = fluid ;
+    density_model = "Air-Ideal Gas" ;
+    specific_heat_model = "Air-Ideal Gas" ;
+    viscosity_model = "Air-Ideal Gas" ;
+    conductivity_model = "Air-Ideal Gas" ;
+}
+MESH_BOUNDARY_CONDITION( "Fixed" ) {
+    surface_sets = { "run1.SurfaceSet_1.tria3.SolidBody_2_10.tet4",
+                     "run1.SurfaceSet_2.tria3.SolidBody_2_10.tet4",
+                     "run1.SurfaceSet_3.tria3.SolidBody_2_10.tet4",
+                     "run1.SurfaceSet_4.quad4.SolidBody_2_10.wedge6",
+                     "run1.SurfaceSet_4.tria3.SolidBody_2_10.tet4",
+                     "run1.SurfaceSet_5.tria3.SolidBody_2_10.tet4",
+                     "run1.SurfaceSet_6.tria3.SolidBody_2_10.wedge6",
+                     "run1.SurfaceSet_7.tria3.SolidBody_2_10.wedge6",
+                     "run1.SurfaceSet_8.tria3.SolidBody_2_10.wedge6" } ;
+    type = fixed ;
+}
+ELEMENT_SET( "Wing_forcfd3 v8 SolidBody_2_10" ) {
+    volume_sets = { "run1.SolidBody_2_10.tet4",
+                    "run1.SolidBody_2_10.wedge6" } ;
+    medium = fluid ;
+    quadrature = full ;
+    material_model = "Air-Ideal Gas" ;
+    num_shell_layers = 1 ;
+    shell_thickness_type = constant ;
+    viscous_heating = off ;
+    compression_heating = off ;
+    enhanced_strain = off ;
+    num_enhanced_modes = 0 ;
+    residual_control = on ;
+    oscillation_control = on ;
+    mesh_distortion_correction_factor = 0 ;
+    mesh_distortion_tolerance = 0 ;
+}
+NODAL_INITIAL_CONDITION( "pressure" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "velocity" ) {
+    selection_type = all ;
+    type = constant ;
+    default_values = { 0, 0, 0; } ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "temperature" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 273.16 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "eddy_viscosity" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "kinetic_energy" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "dissipation_rate" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "eddy_frequency" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "eddy_time" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "intermittency" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "transition_re_theta" ) {
+    selection_type = all ;
+    type = constant ;
+    default_value = 0 ;
+    satisfy_boundary_condition = off ;
+    precedence = 0 ;
+}
+NODAL_INITIAL_CONDITION( "Part initial condition - x_velocity - Wing_forcfd3 v8 SolidBody_2_10" ) {
+    variable = x_velocity ;
+    selection_type = element_set ;
+    element_set = "Wing_forcfd3 v8 SolidBody_2_10" ;
+    type = constant ;
+    constant_value = 20 ;
+    satisfy_boundary_condition = off ;
+    precedence = 1 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "Outlet" ) {
+    surface_sets = { "run1.SurfaceSet_1.tria3.SolidBody_2_10.tet4" } ;
+    type = outflow ;
+    outflow_type = auto_pressure ;
+    precedence = 1 ;
+    pressure = 0 ;
+    pressure_loss_factor = 0 ;
+    hydrostatic_pressure = off ;
+    hydrostatic_pressure_origin = { 0, 0, 0; } ;
+    non_reflecting_factor = 0 ;
+    mesh_displacement_type = none ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "Outlet - Output" ) {
+    surface_sets = { "run1.SurfaceSet_1.tria3.SolidBody_2_10.tet4" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "Far field" ) {
+    surface_sets = { "run1.SurfaceSet_2.tria3.SolidBody_2_10.tet4" } ;
+    type = far_field ;
+    outflow_type = auto_pressure ;
+    precedence = 1 ;
+    x_velocity = 20 ;
+    y_velocity = 0 ;
+    z_velocity = 0 ;
+    pressure = 0 ;
+    pressure_loss_factor = 0 ;
+    hydrostatic_pressure = off ;
+    hydrostatic_pressure_origin = { 0, 0, 0; } ;
+    temperature = 273.16 ;
+    turbulence_input_type = auto ;
+    turbulence_flow_type = internal ;
+    turbulence_intensity_type = auto ;
+    percent_turbulence_intensity = 0 ;
+    turbulence_velocity_scale = 0 ;
+    turbulence_length_scale = 0 ;
+    turbulence_viscosity_ratio = 1 ;
+    eddy_viscosity = 0.036742 ;
+    non_reflecting_factor = 0 ;
+    mesh_displacement_type = none ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "Far field - Output" ) {
+    surface_sets = { "run1.SurfaceSet_2.tria3.SolidBody_2_10.tet4" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "Inlet" ) {
+    surface_sets = { "run1.SurfaceSet_3.tria3.SolidBody_2_10.tet4" } ;
+    type = inflow ;
+    inflow_type = velocity ;
+    precedence = 1 ;
+    inflow_velocity_type = cartesian ;
+    x_velocity = 20 ;
+    y_velocity = 0 ;
+    z_velocity = 0 ;
+    temperature = 273.16 ;
+    turbulence_input_type = auto ;
+    turbulence_flow_type = internal ;
+    turbulence_intensity_type = auto ;
+    percent_turbulence_intensity = 0 ;
+    turbulence_velocity_scale = 0 ;
+    turbulence_length_scale = 0 ;
+    turbulence_viscosity_ratio = 1 ;
+    eddy_viscosity = 0.036742 ;
+    non_reflecting_factor = 0 ;
+    mesh_displacement_type = none ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "Inlet - Output" ) {
+    surface_sets = { "run1.SurfaceSet_3.tria3.SolidBody_2_10.tet4" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "Symmetry" ) {
+    surface_sets = { "run1.SurfaceSet_4.quad4.SolidBody_2_10.wedge6",
+                     "run1.SurfaceSet_4.tria3.SolidBody_2_10.tet4" } ;
+    type = symmetry ;
+    precedence = 1 ;
+    mesh_displacement_type = none ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "Symmetry - Output" ) {
+    surface_sets = { "run1.SurfaceSet_4.quad4.SolidBody_2_10.wedge6",
+                     "run1.SurfaceSet_4.tria3.SolidBody_2_10.tet4" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "MovingGround" ) {
+    surface_sets = { "run1.SurfaceSet_5.tria3.SolidBody_2_10.tet4" } ;
+    type = wall ;
+    precedence = 1 ;
+    wall_velocity_type = cartesian ;
+    x_velocity = 20 ;
+    y_velocity = 0 ;
+    z_velocity = 0 ;
+    heat_flux = 0 ;
+    convective_heat_coefficient = 0 ;
+    convective_heat_reference_temperature = 273.16 ;
+    turbulence_wall_type = wall_function ;
+    roughness_height = 0 ;
+    wall_function_friction_factor = 1 ;
+    wall_function_heat_flux_factor = 1 ;
+    mesh_displacement_type = none ;
+    split_internal_surfaces = off ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "MovingGround - Output" ) {
+    surface_sets = { "run1.SurfaceSet_5.tria3.SolidBody_2_10.tet4" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "NozzleInlet" ) {
+    surface_sets = { "run1.SurfaceSet_6.tria3.SolidBody_2_10.wedge6" } ;
+    type = inflow ;
+    inflow_type = velocity ;
+    precedence = 1 ;
+    inflow_velocity_type = cartesian ;
+    x_velocity = 0 ;
+    y_velocity = 100 ;
+    z_velocity = 0 ;
+    temperature = 273.16 ;
+    turbulence_input_type = auto ;
+    turbulence_flow_type = internal ;
+    turbulence_intensity_type = auto ;
+    percent_turbulence_intensity = 0 ;
+    turbulence_velocity_scale = 0 ;
+    turbulence_length_scale = 0 ;
+    turbulence_viscosity_ratio = 1 ;
+    eddy_viscosity = 0.036742 ;
+    non_reflecting_factor = 0 ;
+    mesh_displacement_type = none ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "NozzleInlet - Output" ) {
+    surface_sets = { "run1.SurfaceSet_6.tria3.SolidBody_2_10.wedge6" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "NozzleWall" ) {
+    surface_sets = { "run1.SurfaceSet_7.tria3.SolidBody_2_10.wedge6" } ;
+    type = wall ;
+    precedence = 1 ;
+    wall_velocity_type = match_mesh_velocity ;
+    heat_flux = 0 ;
+    convective_heat_coefficient = 0 ;
+    convective_heat_reference_temperature = 273.16 ;
+    turbulence_wall_type = wall_function ;
+    roughness_height = 0 ;
+    wall_function_friction_factor = 1 ;
+    wall_function_heat_flux_factor = 1 ;
+    mesh_displacement_type = none ;
+    split_internal_surfaces = off ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "NozzleWall - Output" ) {
+    surface_sets = { "run1.SurfaceSet_7.tria3.SolidBody_2_10.wedge6" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+SIMPLE_BOUNDARY_CONDITION( "Wing" ) {
+    surface_sets = { "run1.SurfaceSet_8.tria3.SolidBody_2_10.wedge6" } ;
+    type = wall ;
+    precedence = 1 ;
+    wall_velocity_type = match_mesh_velocity ;
+    heat_flux = 0 ;
+    convective_heat_coefficient = 0 ;
+    convective_heat_reference_temperature = 273.16 ;
+    turbulence_wall_type = wall_function ;
+    roughness_height = 0 ;
+    wall_function_friction_factor = 1 ;
+    wall_function_heat_flux_factor = 1 ;
+    mesh_displacement_type = none ;
+    split_internal_surfaces = off ;
+    active_type = all ;
+}
+SURFACE_OUTPUT( "Wing - Output" ) {
+    surface_sets = { "run1.SurfaceSet_8.tria3.SolidBody_2_10.wedge6" } ;
+    integrated_output_frequency = 1 ;
+    integrated_output_time_interval = 0 ;
+    statistics_output_frequency = 1 ;
+    statistics_output_time_interval = 0 ;
+    nodal_output_frequency = 0 ;
+    nodal_output_time_interval = 0 ;
+    num_saved_states = 0 ;
+}
+NODAL_OUTPUT {
+    output_frequency = 100 ;
+    output_initial_condition = off ;
+    continuous_output = off ;
+}
+DERIVED_QUANTITY_OUTPUT {
+    output_frequency = 100 ;
+}
+RESTART_OUTPUT {
+    output_frequency = 100 ;
+}
+TIME_AVERAGE_OUTPUT {
+    order = 2 ;
+    output_frequency = 100 ;
+    reset_frequency = 0 ;
+}
+NODAL_RESIDUAL_OUTPUT {
+    output_frequency = 100 ;
+}
+RUN

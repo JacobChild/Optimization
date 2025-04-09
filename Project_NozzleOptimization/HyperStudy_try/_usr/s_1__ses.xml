@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HyperStudySession>
+  <!--
+    COPYRIGHT (c) 1999-2025 Altair Engineering, Inc. 
+    Email: hstsupport@altair.com
+    Phone: +1 (248) 614-2400
+    http://www.altair.com
+  -->
+  <DocumentProperties>
+    <FileDate>2025-04-03 18:12:31 </FileDate>
+    <Revision>0.0</Revision>
+    <Author></Author>
+    <System>Windows [Version 6.2.9200] (64 bit)</System>
+    <CreatedBy>Altair HyperStudy(TM) v2025.0.0.24.3126643</CreatedBy>
+  </DocumentProperties>
+  <Revision>
+    <Major>25</Major>
+    <Minor>0</Minor>
+    <Build>24</Build>
+    <SubMinor>20240601</SubMinor>
+    <BuildId>3126643</BuildId>
+  </Revision>
+  <StudySettings>
+    <Setting name="Explorer_ExpandStates" type="string">0111</Setting>
+    <Setting name="Explorer_SelectStates" type="string">00001000</Setting>
+    <Setting name="define_modelss_1setup_1CurrentTabIndex" type="string">0</Setting>
+    <Setting name="define_modelss_1setup_1CurrentTabName" type="string">define_models</Setting>
+    <Setting name="s_1CurrentTabIndex" type="string">0</Setting>
+    <Setting name="s_1CurrentTabName" type="string">study_details</Setting>
+  </StudySettings>
+</HyperStudySession>
