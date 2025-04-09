@@ -23,3 +23,20 @@ K = 40 # max hours available
 n = len(tasks) # number of tasks
 V = np.zeros((n+1, K+1)) # value matrix
 S = np.zeros((n+1, K+1), dtype=bool) # selection matrix
+
+#make a value function, given
+
+for i in range(1, n): #AI said n+1
+    for k in range(K): #AI said K+1
+        if tasks[i,1] > k:
+            V[i,k] = V[i-1,k]
+        else:
+            if tasks[i,2] + V[i-1,k-tasks[i,1]] > V[i-1,k]: #take the task
+                V[i,k] = tasks[i,2] + V[i-1,k-tasks[i,1]]
+                S[i,k] = True
+            else: #don't take the task
+                V[i,k] = V[i-1,k]
+                S[i,k] = False
+                
+
+# %%
