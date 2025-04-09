@@ -1,0 +1,6 @@
+*.log
+*.Log
+*.B
+*.inc
+Project_NozzleOptimization/Geometry/ACUSIM.DIR/
+Project_NozzleOptimization/Geometry/ENSIGHT.DIR/
