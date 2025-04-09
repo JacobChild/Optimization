@@ -9,8 +9,8 @@ FILE_DESCRIPTION(
 /* implementation_level */ '2;1');
 
 FILE_NAME(
-/* name */ 'Wing_forcfd3 v11.step',
-/* time_stamp */ '2025-04-09T10:31:24-06:00',
+/* name */ 'Wing_forcfd3_v11_splitfaces.step',
+/* time_stamp */ '2025-04-09T10:32:15-06:00',
 /* author */ (''),
 /* organization */ (''),
 /* preprocessor_version */ 'ST-DEVELOPER v20',
